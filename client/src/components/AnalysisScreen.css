@@ -1,0 +1,608 @@
+/* Analysis screen: streaming alert steps + card grid (mock-aligned) */
+
+.analysis-screen {
+  min-height: 100vh;
+  background: #f0f2f5;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+.analysis-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e8e8ec;
+}
+
+.analysis-header__back {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid #e0e0e6;
+  color: #5B4FFF;
+  text-decoration: none;
+  background: #fff;
+  transition: border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+}
+
+.analysis-header__back:hover {
+  border-color: #5B4FFF;
+  background: #f5f3ff;
+  color: #5B4FFF;
+}
+
+.analysis-header__text {
+  flex: 1;
+}
+
+.analysis-header__title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+
+.analysis-header__subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #6b6b7b;
+  line-height: 1.4;
+  max-width: 480px;
+}
+
+.analysis-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 0;
+  min-height: calc(100vh - 60px);
+}
+
+.analysis-sidebar {
+  background: #fff;
+  border-right: 1px solid #e8e8ec;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+.analysis-sidebar__head {
+  margin-bottom: 12px;
+}
+
+.analysis-sidebar__head:empty {
+  display: none;
+}
+
+.analysis-sidebar__count {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 18px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #5B4FFF;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border-radius: 10px;
+  border: 2px solid #c4b5fd;
+  box-shadow: 0 2px 8px rgba(91, 79, 255, 0.12);
+  box-sizing: border-box;
+}
+
+/* Loader with label - only when streaming */
+.analysis-loader-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
+  border-radius: 10px;
+  border: 1px solid #e8e7ff;
+}
+
+.analysis-loader {
+  width: 28px;
+  height: 28px;
+  border: 2px solid #e8e8ec;
+  border-top-color: #5B4FFF;
+  border-radius: 50%;
+  animation: analysis-spin 0.9s linear infinite;
+  flex-shrink: 0;
+}
+
+.analysis-loader-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #5B4FFF;
+}
+
+@keyframes analysis-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Streaming steps: alert-style boxes, one after the other (Uiverse-style) */
+.analysis-stream-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 8px;
+}
+
+/* Real steps: new log slides in from bottom */
+.analysis-step--animate {
+  animation: analysis-step-in 0.35s ease-out backwards;
+}
+
+.analysis-step--enter {
+  animation: analysis-step-enter 0.4s ease-out backwards;
+}
+
+@keyframes analysis-step-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes analysis-step-enter {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Exiting steps: slide up and fade out */
+.analysis-step--exiting {
+  animation: analysis-step-exit 0.45s ease-in forwards;
+  pointer-events: none;
+}
+
+@keyframes analysis-step-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+}
+
+/* Placeholder skeleton logs (2–3 lines) while waiting for first steps */
+.analysis-step--skeleton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid #e4e4e7;
+  background: #f8f9fb;
+}
+
+.analysis-step__skeleton-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e4e4e7 25%, #f0f0f2 50%, #e4e4e7 75%);
+  background-size: 200% 100%;
+  animation: analysis-skeleton-shimmer 1.2s ease-in-out infinite;
+}
+
+.analysis-step__skeleton-text {
+  flex: 1;
+  height: 14px;
+  max-width: 180px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e4e4e7 25%, #f0f0f2 50%, #e4e4e7 75%);
+  background-size: 200% 100%;
+  animation: analysis-skeleton-shimmer 1.2s ease-in-out infinite;
+  animation-delay: 0.15s;
+}
+
+@keyframes analysis-skeleton-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.analysis-step {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.analysis-step:hover {
+  transform: scale(1.02);
+}
+
+.analysis-step__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-right: 10px;
+}
+
+.analysis-step__text {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+/* Completed step: strikethrough and muted */
+.analysis-step--completed .analysis-step__text {
+  text-decoration: line-through;
+  opacity: 0.75;
+  color: inherit;
+}
+
+.analysis-step--success {
+  background: #dcfce7;
+  border-left-color: #22c55e;
+  color: #166534;
+}
+
+.analysis-step--success .analysis-step__icon {
+  color: #16a34a;
+}
+
+.analysis-step--info {
+  background: #dbeafe;
+  border-left-color: #3b82f6;
+  color: #1e40af;
+}
+
+.analysis-step--info .analysis-step__icon {
+  color: #2563eb;
+}
+
+.analysis-step--warning {
+  background: #fef9c3;
+  border-left-color: #eab308;
+  color: #854d0e;
+}
+
+.analysis-step--warning .analysis-step__icon {
+  color: #ca8a04;
+}
+
+.analysis-step--error {
+  background: #fee2e2;
+  border-left-color: #ef4444;
+  color: #b91c1c;
+}
+
+.analysis-step--error .analysis-step__icon {
+  color: #dc2626;
+}
+
+.analysis-main {
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.analysis-message {
+  margin-bottom: 16px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.analysis-message--error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.analysis-message--success {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+/* Cards wrap: same grid as dashboard (dashboard-insights-grid from Dashboard.css) */
+.analysis-cards-wrap {
+  min-height: 120px;
+}
+
+.analysis-cards-wrap--has-cards .analysis-stream-grid {
+  animation: analysis-cards-in 0.4s ease-out;
+}
+
+@keyframes analysis-cards-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.analysis-stream-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+  gap: 24px;
+}
+
+/* Larger insight cards on analysis screen (height + width) */
+.analysis-stream-grid .dashboard-insight-tile {
+  min-height: 220px;
+  padding: 24px;
+}
+
+.analysis-stream-grid .dashboard-insight-tile__title {
+  font-size: 1.25rem;
+}
+
+.analysis-stream-grid .dashboard-insight-tile__summary {
+  font-size: 0.9375rem;
+  margin-bottom: 20px;
+}
+
+/* Full-screen overlay with blur when redirecting */
+.analysis-redirect-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(240, 242, 245, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  animation: analysis-redirect-overlay-in 0.25s ease-out;
+}
+
+@keyframes analysis-redirect-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Redirect loader (5 seconds) – bouncing dots, centered on overlay */
+.analysis-redirect-loader {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 20px 28px;
+  background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 100%);
+  border: 1px solid #e9e7ff;
+  border-radius: 14px;
+  box-shadow: 0 8px 32px rgba(91, 79, 255, 0.12);
+}
+
+.analysis-redirect-dots {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.analysis-redirect-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #1d4ed8; /* blue-700 */
+  animation: analysis-bounce 0.6s ease-in-out infinite both;
+}
+
+.analysis-redirect-dot--1 { animation-delay: 0.7s; }
+.analysis-redirect-dot--2 { animation-delay: 0.3s; }
+.analysis-redirect-dot--3 { animation-delay: 0.7s; }
+
+@keyframes analysis-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.analysis-redirect-loader__text {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: #5B4FFF;
+}
+
+/* Compact card (grid tile) */
+.insight-card-compact {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  border: 1px solid #e8e8ec;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.2s;
+}
+
+.insight-card-compact:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.insight-card-compact__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.insight-card-icon {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.insight-card-icon--dollar { background: #dcfce7; color: #166534; }
+.insight-card-icon--building { background: #dbeafe; color: #1e40af; }
+.insight-card-icon--store { background: #fef3c7; color: #92400e; }
+.insight-card-icon--chart { background: #e0e7ff; color: #3730a3; }
+.insight-card-icon--wrench { background: #f3e8ff; color: #6b21a8; }
+.insight-card-icon--doc { background: #e0f2fe; color: #0369a1; }
+.insight-card-icon--foot { background: #fce7f3; color: #9d174d; }
+.insight-card-icon--smile { background: #fef9c3; color: #854d0e; }
+.insight-card-icon--warning { background: #fee2e2; color: #b91c1c; }
+
+.insight-card-compact__badge {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.insight-card-compact__badge--positive {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.insight-card-compact__badge--negative {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.insight-card-compact__badge--neutral {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+.insight-card-compact__title {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #1a1a2e;
+}
+
+.insight-card-compact__summary {
+  margin: 0 0 12px;
+  font-size: 0.8125rem;
+  line-height: 1.4;
+  color: #6b6b7b;
+}
+
+.insight-card-compact__view {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #5B4FFF;
+  cursor: pointer;
+}
+
+.insight-card-compact__view:hover {
+  text-decoration: underline;
+}
+
+/* Expanded section (mock: DATA EVIDENCE + WHY IT MATTERS boxes) */
+.insight-card-expanded {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid #e8e8ec;
+}
+
+.insight-card-expanded__desc {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #3d3d4a;
+}
+
+.insight-card-expanded__box {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.insight-card-expanded__box-label {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  color: #94a3b8;
+  margin-bottom: 6px;
+}
+
+.insight-card-expanded__box--why .insight-card-expanded__box-label {
+  color: #6366f1;
+}
+
+.insight-card-expanded__box-text {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #334155;
+}
+
+.insight-card-expanded__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.insight-card-expanded__confidence strong {
+  color: #5B4FFF;
+}
+
+.analysis-show-less-wrap {
+  text-align: center;
+  margin-top: 24px;
+}
+
+.analysis-show-less {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: 1px solid #e8e8ec;
+  background: #fff;
+  color: #5B4FFF;
+  font-weight: 500;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.analysis-show-less:hover {
+  background: #f8f9fc;
+}
+
+.analysis-error {
+  padding: 40px;
+  text-align: center;
+}
+
+.analysis-error a {
+  color: #5B4FFF;
+}
+
+@media (max-width: 768px) {
+  .analysis-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-cards-grid {
+    grid-template-columns: 1fr;
+  }
+}
