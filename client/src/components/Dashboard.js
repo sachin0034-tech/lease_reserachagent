@@ -650,15 +650,39 @@ export default function Dashboard() {
             </div>
             <div className="dashboard-card__rec-list">
               <div className="dashboard-card__rec-row">
-                <span className="dashboard-card__rec-label">Ideal Term</span>
+                <div className="dashboard-card__rec-row-head">
+                  <span className="dashboard-card__rec-label">Ideal Term</span>
+                  {(rec.ideal_term_reasoning || '').trim() && (
+                    <span className="dashboard-card__rec-tooltip-wrap">
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <span className="dashboard-card__rec-tooltip">{rec.ideal_term_reasoning}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="dashboard-card__rec-value">{rec.ideal_term || '—'}</p>
               </div>
               <div className="dashboard-card__rec-row">
-                <span className="dashboard-card__rec-label">Negotiation Leverage</span>
+                <div className="dashboard-card__rec-row-head">
+                  <span className="dashboard-card__rec-label">Negotiation Leverage</span>
+                  {(rec.negotiation_leverage_reasoning || '').trim() && (
+                    <span className="dashboard-card__rec-tooltip-wrap">
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <span className="dashboard-card__rec-tooltip">{rec.negotiation_leverage_reasoning}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="dashboard-card__rec-value dashboard-card__rec-value--green">{rec.negotiation_leverage || '—'}</p>
               </div>
               <div className="dashboard-card__rec-row">
-                <span className="dashboard-card__rec-label">Renewals</span>
+                <div className="dashboard-card__rec-row-head">
+                  <span className="dashboard-card__rec-label">Renewals</span>
+                  {(rec.renewals_reasoning || '').trim() && (
+                    <span className="dashboard-card__rec-tooltip-wrap">
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <span className="dashboard-card__rec-tooltip">{rec.renewals_reasoning}</span>
+                    </span>
+                  )}
+                </div>
                 <p className="dashboard-card__rec-value">{rec.renewals || '—'}</p>
               </div>
             </div>

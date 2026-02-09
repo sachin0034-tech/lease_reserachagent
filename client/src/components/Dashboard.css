@@ -337,12 +337,62 @@
   color: #6b7280;
 }
 
+.dashboard-card__rec-row-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .dashboard-card__rec-label {
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.02em;
   color: #9a9aaa;
   text-transform: uppercase;
+}
+
+.dashboard-card__rec-tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: help;
+}
+
+.dashboard-card__rec-info-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.dashboard-card__rec-tooltip-wrap:hover .dashboard-card__rec-info-icon {
+  color: #5B4FFF;
+}
+
+.dashboard-card__rec-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 100%;
+  transform: translate(-50%, -8px);
+  min-width: 200px;
+  max-width: 320px;
+  padding: 10px 12px;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 400;
+  line-height: 1.45;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  white-space: normal;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.dashboard-card__rec-tooltip-wrap:hover .dashboard-card__rec-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .dashboard-card__rec-value {

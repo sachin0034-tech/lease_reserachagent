@@ -181,13 +181,16 @@ DASHBOARD_SEARCH_MODEL = "gpt-4o-mini-search-preview"
 DASHBOARD_FALLBACK_MODEL = "gpt-4o-mini"
 
 RECOMMENDATIONS_FORMAT = """
-recommendations must be an object with exactly three keys. You MUST derive each value ONLY from the analysis of the provided insight cards and document context—no placeholders, no example values, no mock data. If the cards do not support a value, use "—".
+recommendations must be an object with exactly six keys (value + reasoning for each). You MUST derive each value ONLY from the analysis of the provided insight cards and document context—no placeholders, no example values, no mock data. If the cards do not support a value, use "—".
 
-1. ideal_term: From the cards, infer the recommended lease term. Output format: "[number] Years" or "[number] Years + [number] Option" (e.g. 3 Years, 7 Years + 2 Option). The numbers must come from your analysis of lease term, market stability, or tenant/landlord insights in the cards—never default to a fixed phrase like "5 Years + 2 Option" unless the cards support it.
+1. ideal_term: From the cards, infer the recommended lease term. Output format: "[number] Years" or "[number] Years + [number] Option" (e.g. 3 Years, 7 Years + 2 Option). The numbers must come from your analysis of lease term, market stability, or tenant/landlord insights in the cards.
+   ideal_term_reasoning: One or two sentences explaining why you suggested this term—cite specific insight cards or evidence (e.g. market stability, comparable lease terms, tenant mix).
 
-2. negotiation_leverage: From the cards, infer strength of negotiation position. Output format: "Low" or "Moderate" or "High" followed by " (brief reason from cards)". The level and reason must be justified by infrastructure, co-tenancy, market activity, or risk evidence in the cards.
+2. negotiation_leverage: From the cards, infer strength of negotiation position. Output format: "Low" or "Moderate" or "High" followed by " (brief reason from cards)". The level must be justified by infrastructure, co-tenancy, market activity, or risk evidence in the cards.
+   negotiation_leverage_reasoning: One or two sentences explaining why you assessed leverage this way—cite vacancy, payment history, demand, or other factors from the cards.
 
-3. renewals: From the cards, infer renewal or escalation stance. Output format: a short phrase with numbers when the cards support it (e.g. "Cap at 2% YoY", "3% annual escalation"). If cards do not specify percentages, derive from market or renewal insights or output a brief text-only phrase. Do not default to "Cap at 3% YoY" unless the cards support it.
+3. renewals: From the cards, infer renewal or escalation stance. Output format: a short phrase with numbers when the cards support it (e.g. "Cap at 2% YoY", "3% annual escalation"). If cards do not specify percentages, derive from market or renewal insights or output a brief text-only phrase.
+   renewals_reasoning: One or two sentences explaining why you suggested this renewal/escalation stance—cite market trends, comps, or insight cards.
 """
 
 DASHBOARD_SYSTEM_WITH_SEARCH = """You are a lease analyst. You have access to OpenAI's built-in web search only—use it when you need current market rents, comps, or local data for the property area. Do not use any other tools.
@@ -198,7 +201,7 @@ Output a single JSON object with:
 - fair_market_rent: number (recommended $/sq ft from cards and search)
 - confidence_score: integer 0-100
 - vs_current_pct: number (percent change vs current rent)
-- recommendations: object with ideal_term, negotiation_leverage, renewals
+- recommendations: object with ideal_term, ideal_term_reasoning, negotiation_leverage, negotiation_leverage_reasoning, renewals, renewals_reasoning
 - portfolio_context: object with this_property_rent, portfolio_avg_rent, comparison_pct, comparison_text
 """ + RECOMMENDATIONS_FORMAT + """
 Base every value on the insight cards and any search results. Return only valid JSON, no markdown."""
@@ -209,7 +212,7 @@ Output a single JSON object with these exact keys:
 - fair_market_rent: number (recommended $/sq ft inferred from the insight cards' data_evidence and why_it_matters)
 - confidence_score: integer 0-100 (how well the cards support the recommendation)
 - vs_current_pct: number (percent change vs current rent, e.g. 8.3 for +8.3%)
-- recommendations: object with ideal_term, negotiation_leverage, renewals
+- recommendations: object with ideal_term, ideal_term_reasoning, negotiation_leverage, negotiation_leverage_reasoning, renewals, renewals_reasoning
 - portfolio_context: object with this_property_rent (number), portfolio_avg_rent (number), comparison_pct (number), comparison_text (string)
 """ + RECOMMENDATIONS_FORMAT + """
 Every value must be derived from the insight cards. Return only valid JSON, no markdown."""
@@ -298,8 +301,11 @@ def get_dashboard_summary(
                 "vs_current_pct": vs_current_pct,
                 "recommendations": {
                     "ideal_term": str(rec.get("ideal_term") or "—").strip() or "—",
+                    "ideal_term_reasoning": str(rec.get("ideal_term_reasoning") or "").strip() or "",
                     "negotiation_leverage": str(rec.get("negotiation_leverage") or "—").strip() or "—",
+                    "negotiation_leverage_reasoning": str(rec.get("negotiation_leverage_reasoning") or "").strip() or "",
                     "renewals": str(rec.get("renewals") or "—").strip() or "—",
+                    "renewals_reasoning": str(rec.get("renewals_reasoning") or "").strip() or "",
                 },
                 "portfolio_context": {
                     "this_property_rent": this_rent,
@@ -335,7 +341,14 @@ def _minimal_dashboard(current: float) -> dict:
         "fair_market_rent": round(current, 2),
         "confidence_score": 0,
         "vs_current_pct": 0.0,
-        "recommendations": {"ideal_term": "—", "negotiation_leverage": "—", "renewals": "—"},
+        "recommendations": {
+            "ideal_term": "—",
+            "ideal_term_reasoning": "",
+            "negotiation_leverage": "—",
+            "negotiation_leverage_reasoning": "",
+            "renewals": "—",
+            "renewals_reasoning": "",
+        },
         "portfolio_context": {
             "this_property_rent": round(current, 2),
             "portfolio_avg_rent": round(current, 2),
