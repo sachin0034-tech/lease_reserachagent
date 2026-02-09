@@ -4,7 +4,7 @@ import { InsightCardTile, EvidenceModal } from './Dashboard';
 import './Dashboard.css';
 import './AnalysisScreen.css';
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
 /** Keep first occurrence per title (case-insensitive) to avoid duplicate insight cards. */
 function dedupeCardsByTitle(cardList) {

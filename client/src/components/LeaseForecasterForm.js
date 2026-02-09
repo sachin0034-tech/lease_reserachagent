@@ -74,7 +74,7 @@ export default function LeaseForecasterForm() {
   const [summaryContext, setSummaryContext] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
 
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files || []);

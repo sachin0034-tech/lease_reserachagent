@@ -488,7 +488,7 @@ export default function Dashboard() {
   const [activeChip, setActiveChip] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
 
-  const API_BASE = 'http://localhost:8000';
+  const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
   const sendChatMessage = async (text) => {
     const trimmed = (text || '').trim();
