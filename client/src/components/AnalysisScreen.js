@@ -27,7 +27,7 @@ export default function AnalysisScreen() {
   const [streamSteps, setStreamSteps] = useState([]);
   const [displayedStepCount, setDisplayedStepCount] = useState(0);
   const [cards, setCards] = useState([]);
-  const [dashboardData, setDashboardData] = useState(null);
+  const [, setDashboardData] = useState(null);
   const [error, setError] = useState(null);
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [showLess, setShowLess] = useState(false);
@@ -167,7 +167,7 @@ export default function AnalysisScreen() {
       setStatus('error');
       addStep('error', err.message || 'Connection error');
     }
-  }, [sessionId, addStep]);
+  }, [sessionId, addStep, navigate]);
 
   useEffect(() => {
     if (sessionId && status === 'connecting') {

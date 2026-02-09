@@ -8,7 +8,6 @@ import {
   HiOutlineBuildingOffice2,
   HiOutlineExclamationTriangle,
   HiOutlineMapPin,
-  HiOutlineWrenchScrewdriver,
   HiOutlineTruck,
   HiOutlineUsers,
   HiOutlineShoppingBag,
@@ -540,7 +539,6 @@ export default function Dashboard() {
   const vsCurrentPct = dashboardSummary.vs_current_pct != null ? Number(dashboardSummary.vs_current_pct) : null;
   const currentRent = property.current_base_rent != null ? String(property.current_base_rent) : '';
   const rec = dashboardSummary.recommendations || {};
-  const recSource = dashboardSummary.recommendations_source;
   const port = dashboardSummary.portfolio_context || {};
 
   const thisRent = port.this_property_rent != null ? Number(port.this_property_rent) : fairRent;
