@@ -1,0 +1,34 @@
+# Reduce serverless bundle size (Vercel 250 MB limit)
+# https://vercel.com/docs/deployments/vercel-ignore
+
+# Virtual env and Python caches (never deploy)
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Env and local data (use Vercel env vars instead)
+.env
+.env.*
+data/
+
+# Docs and dev files
+DEPLOY-VERCEL.md
+*.md
+.pytest_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Git
+.git/
+.gitignore
