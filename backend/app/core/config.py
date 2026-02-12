@@ -12,8 +12,13 @@ load_dotenv(_env_path, override=True)
 if Path.cwd() / ".env" != _env_path:
     load_dotenv(Path.cwd() / ".env", override=False)
 
-def _read_key_from_env_file() -> str | None:
-    """Fallback: parse .env file directly if env var not set (e.g. subprocess/reload)."""
+
+def _read_key_from_env_file(key_name: str) -> str | None:
+    """
+    Fallback: parse .env file directly if env var not set (e.g. subprocess/reload).
+
+    Supports arbitrary key names so we can reuse for multiple providers (OpenAI, Anthropic, etc.).
+    """
     if not _env_path.exists():
         return None
     try:
@@ -23,16 +28,31 @@ def _read_key_from_env_file() -> str | None:
             if line.startswith("#") or "=" not in line:
                 continue
             key, _, value = line.partition("=")
-            if key.strip() == "OPENAI_API_KEY":
+            if key.strip() == key_name:
                 v = value.strip().strip("'\"")
-                return v if v and v != "sk-..." else None
+                # Treat placeholder examples as missing
+                return v if v and v not in {"sk-...", "sk-ant-..."} else None
     except Exception:
+        # Silent fallback – callers will handle missing keys
         pass
     return None
 
-_raw = os.environ.get("OPENAI_API_KEY")
-OPENAI_API_KEY = (_raw or "").strip().strip("'\"") or None
+
+_raw_openai = os.environ.get("OPENAI_API_KEY")
+OPENAI_API_KEY = (_raw_openai or "").strip().strip("'\"") or None
 if not OPENAI_API_KEY:
-    OPENAI_API_KEY = _read_key_from_env_file()
-if OPENAI_API_KEY == "sk-...":
+    OPENAI_API_KEY = _read_key_from_env_file("OPENAI_API_KEY")
+if OPENAI_API_KEY in {"sk-...", "sk-ant-..."}:
     OPENAI_API_KEY = None
+
+_raw_anthropic = os.environ.get("ANTHROPIC_API_KEY")
+ANTHROPIC_API_KEY = (_raw_anthropic or "").strip().strip("'\"") or None
+if not ANTHROPIC_API_KEY:
+    ANTHROPIC_API_KEY = _read_key_from_env_file("ANTHROPIC_API_KEY")
+if ANTHROPIC_API_KEY in {"sk-...", "sk-ant-..."}:
+    ANTHROPIC_API_KEY = None
+
+_raw_tavily = os.environ.get("TAVILY_API_KEY")
+TAVILY_API_KEY = (_raw_tavily or "").strip().strip("'\"").strip() or None
+if not TAVILY_API_KEY:
+    TAVILY_API_KEY = _read_key_from_env_file("TAVILY_API_KEY")

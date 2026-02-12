@@ -95,14 +95,14 @@ Return a JSON object with exactly the requested insight cards. Each card has:
 - title (string): Short, unique title for this insight (e.g. "Income shifts", "Crime rates"). CRITICAL: Every card must have a UNIQUE title—no two cards may share the same title. For multi-part topics (e.g. "Parking & crime"), use distinct titles such as "Parking availability" and "Crime rates", not the same title twice.
 - impact (string): one of "positive", "neutral", "negative". MUST be role-relative (see above). Use a MIX across cards: assign "negative" when data favors the other side (e.g. strong comps = negative for tenant), "neutral" when mixed or inconclusive, "positive" only when data clearly supports this role. Do not set every card to "positive".
 - confidence_score (integer): 0-100 (use 0 if no data found)
-- source (string): ALWAYS cite a specific site or agency name (e.g. "Census Bureau", "CoStar", "Experian", "City Planning Dept", "Public Filings", "BLS", "User document"). NEVER use generic "Web search" or "web search"—use the actual data provider name. Use "Not available" only when no data exists.
+- source (string): A SHORT 3–4 word name only (e.g. "Census Bureau", "BLS Consumer Spending", "CoStar Market Report", "City Planning Dept"). Never use a long title or full page name—keep it to 3–4 words that identify the source. Use "Not available" only when no data exists.
 - insight (string): REQUIRED. One clear sentence summarizing "what's the insight"—the main finding or takeaway. This must be different from data_evidence. Example: "Experts predict a 5% decline in retail rents in the region over the next year due to increased supply."
 - data_evidence (string): "From where I got what insight"—ONLY raw statistics, numbers, or a direct quote from the source. Do NOT repeat the insight summary here. Example: "Q3 2024 report: $/sf at 85; Q4 forecast 60." Use "No data" if none.
 - why_it_matters (string): REQUIRED for every card. Write one or two sentences explaining negotiation leverage for the requested role (tenant: how this helps tenant pay less; landlord: how this justifies the rent ask; broker: how this affects both sides). NEVER use "N/A", "—", or placeholders. If data_evidence is "No data", explain why this topic would matter for negotiation if data were available.
 - baseline_pct (integer or null): ALWAYS provide a baseline or historical metric when the insight has one (e.g. past rent level, prior traffic, historical average). Use a value between 1 and 100—never use 0. If no baseline applies for this topic, use null.
 - current_trend_pct (integer or null): ALWAYS provide a current or trend metric when the insight has one (e.g. current market level, trend direction). Use a value between 1 and 100—never use 0. If no current/trend metric applies, use null.
 CRITICAL: For each card, when you have data_evidence or market context, you MUST supply meaningful baseline_pct and current_trend_pct (each in 1-100). Only use null when the topic genuinely has no comparable baseline or trend (e.g. purely qualitative insight). Never return 0 for either field.
-- source_url (string or null): When you have a specific URL for the source (e.g. Census table, BLS page, CoStar report), provide the full URL so users can click through. Use null or empty string if not available.
+- source_url (string or null): When you have a specific URL for the source (e.g. Census table, BLS page, CoStar report), provide the full, working URL so users can click through. Use the official site or data provider’s page for the exact dataset you used (not generic homepages or example domains). NEVER invent URLs or use placeholder sites (like example.com); if you cannot identify a precise, real URL, set source_url to null instead of guessing.
 
 You will be asked for cards in batches of 5. Return ONLY a valid JSON object with this exact shape (no markdown, no code fence):
 {"cards": [{"title": "...", "impact": "positive"|"neutral"|"negative", "confidence_score": 0-100, "source": "...", "insight": "...", "data_evidence": "...", "why_it_matters": "...", "baseline_pct": null|1-100, "current_trend_pct": null|1-100, "source_url": null|"https://..."}, ...]}
@@ -111,6 +111,17 @@ One object per requested topic, in order. Each card title MUST be unique within 
 
 For "Tenant / landlord risk" use RAW FACTS ONLY (no speculation). For "Portfolio data" use only user-provided context.
 """
+
+# When LLM has web_search tool: call it to get data, then cite only those URLs
+SYSTEM_ADDITION_FOR_TOOLS = """
+## Web search tool
+You have access to web_search(query). Call it for EACH topic with a specific search query (e.g. property address + topic + "retail lease market data"). Use the results to write each card. For every card you must set source_url to the EXACT URL from one of the search results you received; set source to a short 3–4 word name for that source. Use a DIFFERENT URL for each card—never the same source_url for two cards. When you have enough data from your search calls, output the JSON object with the cards.
+"""
+
+# Claude: generate one search query per topic so we run Tavily with LLM-chosen queries
+BUILD_QUERIES_MESSAGE = """You are a research assistant. Given a property and a list of insight topics, output a JSON object with one web search query per topic. Use this exact format only (no other text):
+{"queries": ["search query for topic 1", "search query for topic 2", ...]}
+Each query should be specific enough to find market/source data for that topic and the property (include the property address or area). One query per topic, in the same order as the topics list."""
 
 
 def build_user_message(
@@ -123,8 +134,14 @@ def build_user_message(
     document_context: str | None,
     card_topics_batch: list[str],
     batch_index: int,
+    search_results: list[dict] | None = None,
 ) -> str:
-    """Build the user message for one batch of cards."""
+    """
+    Build the user message for one batch of cards.
+    If search_results is provided (from Tavily), the LLM MUST use only those sources
+    for source/source_url and base insight/data_evidence on that content—ensuring
+    the link we show is the actual page the data came from.
+    """
     parts = [
         f"Role: {analyze_as}",
         f"Property: {property_name}",
@@ -138,4 +155,28 @@ def build_user_message(
         parts.append(f"  {i}. {topic}")
     if document_context:
         parts.extend(["", "--- Context from uploaded documents ---", document_context[:15000]])
+
+    if search_results:
+        parts.extend([
+            "",
+            "--- ALLOWED SOURCES (you MUST use only these for citations) ---",
+            "For each card, pick ONE source from the list below. Set source_url to that entry's exact URL. "
+            "Set source to a SHORT 3–4 word name that identifies it (e.g. from a long title use 'Census Bureau' or 'BLS Consumer Data'—never the full page title). "
+            "Use a DIFFERENT source (different URL) for each card when possible; do not cite the same URL for multiple cards unless there is only one relevant source. "
+            "The insight and data_evidence for that card must be based ONLY on that source's content.",
+            "",
+        ])
+        for i, r in enumerate(search_results, 1):
+            title = (r.get("title") or "").strip() or "Untitled"
+            url = (r.get("url") or "").strip()
+            content = (r.get("content") or "").strip()[:1500]
+            parts.append(f"{i}. Title: {title}")
+            parts.append(f"   URL: {url}")
+            parts.append(f"   Content: {content}")
+            parts.append("")
+        parts.append(
+            "CRITICAL: source_url MUST be an exact URL from the list above. source MUST be 3–4 words only. "
+            "If no source above fits a topic, set source to 'Not available', source_url to null, data_evidence to 'No data', confidence_score to 0."
+        )
+
     return "\n".join(parts)

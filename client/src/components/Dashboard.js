@@ -206,6 +206,12 @@ function EvidenceModal({ card, onClose }) {
   const impactLabel = card.impact === 'positive' ? 'POSITIVE IMPACT' : card.impact === 'negative' ? 'NEGATIVE IMPACT' : 'NEUTRAL IMPACT';
   const confidence = card.confidence_score != null ? Number(card.confidence_score) : 0;
   const source = card.source || 'Not available';
+  const rawSourceUrl = (card.source_url || '').trim();
+  const sourceUrl = rawSourceUrl
+    ? (rawSourceUrl.startsWith('http://') || rawSourceUrl.startsWith('https://')
+        ? rawSourceUrl
+        : `https://${rawSourceUrl}`)
+    : null;
   const baselinePct = card.baseline_pct != null ? Math.min(100, Math.max(0, Number(card.baseline_pct))) : null;
   const trendPct = card.current_trend_pct != null ? Math.min(100, Math.max(0, Number(card.current_trend_pct))) : null;
   const insightText = (card.insight || card.data_evidence || '').trim() || card.why_it_matters || '';
@@ -248,7 +254,21 @@ function EvidenceModal({ card, onClose }) {
         </div>
 
         <div className="dashboard-modal__footer">
-          <span className="dashboard-modal__source">Source: {source}</span>
+          <span className="dashboard-modal__source">
+            {sourceUrl ? (
+              <a
+                href={sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="dashboard-modal__source-link"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Source: {source} · Open in new tab
+              </a>
+            ) : (
+              <>Source: {source}</>
+            )}
+          </span>
           <span className="dashboard-modal__confidence">Confidence: <strong>{confidence}%</strong></span>
         </div>
       </div>
@@ -266,8 +286,28 @@ function SettingsModal({ open, onClose, onSave }) {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
   const [documents, setDocuments] = useState([]);
+  // Default: Anthropic. Only one provider can be enabled. Stored value applied when modal opens.
+  const [openaiEnabled, setOpenaiEnabled] = useState(false);
+  const [anthropicEnabled, setAnthropicEnabled] = useState(true);
+  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
+  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lg_llm_provider') : null;
+    if (stored === 'anthropic') {
+      setOpenaiEnabled(false);
+      setAnthropicEnabled(true);
+    } else if (stored === 'openai') {
+      setOpenaiEnabled(true);
+      setAnthropicEnabled(false);
+    } else {
+      setOpenaiEnabled(false);
+      setAnthropicEnabled(true);
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!categoryDropdownOpen) return;
@@ -282,6 +322,26 @@ function SettingsModal({ open, onClose, onSave }) {
 
   const toggleIntegration = (key) => {
     setIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleOpenAIToggle = () => {
+    if (!openaiEnabled && anthropicEnabled) {
+      setLlmProviderModalMessage('You can enable only one provider. Disable Anthropic first or keep the current selection.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    setOpenaiEnabled(!openaiEnabled);
+    if (!openaiEnabled) setAnthropicEnabled(false);
+  };
+
+  const handleAnthropicToggle = () => {
+    if (!anthropicEnabled && openaiEnabled) {
+      setLlmProviderModalMessage('You can enable only one provider. Disable OpenAI first or keep the current selection.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    setAnthropicEnabled(!anthropicEnabled);
+    if (!anthropicEnabled) setOpenaiEnabled(false);
   };
 
   const handleAddDocument = () => {
@@ -301,6 +361,24 @@ function SettingsModal({ open, onClose, onSave }) {
   };
 
   const handleSaveChanges = () => {
+    if (openaiEnabled && anthropicEnabled) {
+      setLlmProviderModalMessage('Please enable only one provider.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    if (!openaiEnabled && !anthropicEnabled) {
+      setLlmProviderModalMessage('Please enable at least one provider (OpenAI or Anthropic).');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    const provider = anthropicEnabled ? 'anthropic' : 'openai';
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lg_llm_provider', provider);
+      }
+    } catch {
+      // ignore storage errors
+    }
     onSave?.();
     onClose();
   };
@@ -405,6 +483,50 @@ function SettingsModal({ open, onClose, onSave }) {
         </section>
 
         <section className="dashboard-settings-modal__section">
+          <h3 className="dashboard-settings-modal__section-title">AI Provider</h3>
+          <p className="dashboard-settings-modal__helper">
+            Enable one provider only. Changes apply when you click Save.
+          </p>
+          <div className="dashboard-settings-modal__integrations">
+            <div className="dashboard-settings-modal__integration">
+              <span className="dashboard-settings-modal__integration-name">OpenAI</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={openaiEnabled}
+                className={`dashboard-settings-modal__toggle ${openaiEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={handleOpenAIToggle}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+            <div className="dashboard-settings-modal__integration">
+              <span className="dashboard-settings-modal__integration-name">Anthropic (Claude)</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={anthropicEnabled}
+                className={`dashboard-settings-modal__toggle ${anthropicEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={handleAnthropicToggle}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {llmProviderModalOpen && (
+          <div className="dashboard-modal-overlay" style={{ zIndex: 10001 }} onClick={() => setLlmProviderModalOpen(false)} role="dialog" aria-modal="true">
+            <div className="dashboard-settings-modal dashboard-settings-modal--alert" onClick={e => e.stopPropagation()}>
+              <p className="dashboard-settings-modal__alert-text">{llmProviderModalMessage}</p>
+              <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary" onClick={() => setLlmProviderModalOpen(false)}>
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+
+        <section className="dashboard-settings-modal__section">
           <h3 className="dashboard-settings-modal__section-title">Integrations</h3>
           <div className="dashboard-settings-modal__integrations">
             <div className="dashboard-settings-modal__integration">
@@ -500,10 +622,19 @@ export default function Dashboard() {
     }
     setChatLoading(true);
     try {
+      let llmProvider = 'anthropic';
+      try {
+        if (typeof window !== 'undefined') {
+          const stored = window.localStorage.getItem('lg_llm_provider');
+          if (stored === 'openai' || stored === 'anthropic') llmProvider = stored;
+        }
+      } catch {
+        // ignore storage errors, default stays anthropic
+      }
       const res = await fetch(`${API_BASE}/api/analyze/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, message: trimmed }),
+        body: JSON.stringify({ session_id: sessionId, message: trimmed, llm_provider: llmProvider }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -654,7 +785,7 @@ export default function Dashboard() {
                   <span className="dashboard-card__rec-label">Ideal Term</span>
                   {(rec.ideal_term_reasoning || '').trim() && (
                     <span className="dashboard-card__rec-tooltip-wrap">
-                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={22} aria-label="Why we suggested this" />
                       <span className="dashboard-card__rec-tooltip">{rec.ideal_term_reasoning}</span>
                     </span>
                   )}
@@ -666,7 +797,7 @@ export default function Dashboard() {
                   <span className="dashboard-card__rec-label">Negotiation Leverage</span>
                   {(rec.negotiation_leverage_reasoning || '').trim() && (
                     <span className="dashboard-card__rec-tooltip-wrap">
-                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={22} aria-label="Why we suggested this" />
                       <span className="dashboard-card__rec-tooltip">{rec.negotiation_leverage_reasoning}</span>
                     </span>
                   )}
@@ -678,7 +809,7 @@ export default function Dashboard() {
                   <span className="dashboard-card__rec-label">Renewals</span>
                   {(rec.renewals_reasoning || '').trim() && (
                     <span className="dashboard-card__rec-tooltip-wrap">
-                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={18} aria-label="Why we suggested this" />
+                      <HiOutlineInformationCircle className="dashboard-card__rec-info-icon" size={22} aria-label="Why we suggested this" />
                       <span className="dashboard-card__rec-tooltip">{rec.renewals_reasoning}</span>
                     </span>
                   )}

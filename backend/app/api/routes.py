@@ -2,10 +2,13 @@ import asyncio
 import json
 import logging
 import uuid
+from pathlib import Path
+
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from app.core.config import BACKEND_ROOT
 from app.schemas.insight_card import CARD_TOPICS
 from app.services.file_extract import extract_text_from_file
 from app.services.openai_summary import summarize_with_openai
@@ -17,8 +20,37 @@ router = APIRouter(prefix="/api", tags=["analyze"])
 # In-memory store for the latest submission (for debugging / step-by-step flow)
 _latest_analyze_payload: dict | None = None
 
-# Session store for streaming analysis: session_id -> context for LLM
+# Session store for streaming analysis: session_id -> context for LLM (persisted to file)
 _sessions: dict[str, dict] = {}
+_SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
+
+
+def _load_sessions() -> None:
+    """Load sessions from disk so they survive server restarts."""
+    global _sessions
+    if not _SESSIONS_FILE.exists():
+        return
+    try:
+        raw = _SESSIONS_FILE.read_text(encoding="utf-8")
+        data = json.loads(raw)
+        if isinstance(data, dict):
+            _sessions.update(data)
+            logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), _SESSIONS_FILE)
+    except Exception as e:
+        logger.warning("[sessions] Could not load sessions from %s: %s", _SESSIONS_FILE, e)
+
+
+def _save_sessions() -> None:
+    """Persist sessions to disk."""
+    try:
+        _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
+    except Exception as e:
+        logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
+
+
+# Load persisted sessions on module load
+_load_sessions()
 
 BATCH_SIZE = 5
 
@@ -115,6 +147,7 @@ async def analyze_start(
     current_base_rent: str = Form(...),
     document_text: str | None = Form(default=None),
     files: list[UploadFile] = File(default=[]),
+    llm_provider: str = Form(default="anthropic"),
 ):
     """
     Step 1: Submit form + either document_text (paste) or files. Backend uses text or extracts
@@ -122,6 +155,9 @@ async def analyze_start(
     """
     global _sessions
     session_id = str(uuid.uuid4())
+    provider_normalized = (llm_provider or "anthropic").strip().lower()
+    if provider_normalized not in {"openai", "anthropic"}:
+        provider_normalized = "anthropic"
     logger.info("[analyze/start] New session_id=%s role=%s property=%s", session_id, analyze_as, property_name)
 
     document_context = None
@@ -148,8 +184,14 @@ async def analyze_start(
         "leasable_area": leasable_area,
         "current_base_rent": current_base_rent,
         "document_context": document_context,
+        "llm_provider": provider_normalized,
     }
-    logger.info("[analyze/start] Session stored. Total sessions=%s", len(_sessions))
+    logger.info(
+        "[analyze/start] Session stored. Total sessions=%s llm_provider=%s",
+        len(_sessions),
+        provider_normalized,
+    )
+    _save_sessions()
     return {"ok": True, "session_id": session_id}
 
 
@@ -164,38 +206,22 @@ async def _stream_analysis(session_id: str):
     total_topics = len(CARD_TOPICS)
     all_cards: list[dict] = []
     seen_titles: set[str] = set()
-    logger.info("[analyze/stream] Starting stream for session_id=%s total_topics=%s", session_id, total_topics)
-
-    # User-friendly activity log lines: what the agent is doing (non-technical)
-    _progress_messages = {
-        "Income shifts (local income, higher/lower vs expected)": "Looking up local income and rent trends…",
-        "Traffic counts (current vs future, higher/lower)": "Checking traffic and footfall data…",
-        "Rent averages (same property, area, historical)": "Gathering rent averages and history…",
-        "Rent forecast (today vs future, up or down)": "Estimating rent outlook (today vs future)…",
-        "Nearby infrastructure developments (effect on rents)": "Researching nearby infrastructure and developments…",
-        "Co-tenancy mix (e.g. anchor tenant commitment, category clustering)": "Analyzing tenant mix and anchor tenants…",
-        "Demographics & consumer buying capacity": "Checking demographics and spending capacity…",
-        "Footfall": "Checking footfall data…",
-        "Local vacancy (new projects, tenant leverage to request lower rent)": "Looking at local vacancy and new projects…",
-        "Tenant business category trends (e.g. apparel growth in area)": "Researching tenant category trends in the area…",
-        "Tenant / landlord risk (RAW FACTS ONLY: brand, cash, payment history, disputes, loans)": "Checking tenant and landlord risk factors…",
-        "Upcoming building maintenance (e.g. HVAC)": "Looking up upcoming maintenance (e.g. HVAC)…",
-        "Market activity & trends (area and tenant category)": "Gathering market activity and trends…",
-        "Sales comps (portfolio vs this lease, comp brands, avg lease term, competitors in property)": "Comparing sales and lease comps…",
-        "Portfolio data (user-provided only)": "Reviewing portfolio data…",
-        "NOI vs cashflow & avg occupancy (landlord: NOI to run building, occupancy level)": "Checking NOI, cashflow, and occupancy…",
-    }
+    logger.info(
+        "[analyze/stream] Starting stream for session_id=%s total_topics=%s llm_provider=%s",
+        session_id,
+        total_topics,
+        ctx.get("llm_provider", "anthropic"),
+    )
 
     for batch_start in range(0, total_topics, BATCH_SIZE):
         batch_topics = CARD_TOPICS[batch_start : batch_start + BATCH_SIZE]
         batch_index = batch_start // BATCH_SIZE + 1
-        for topic in batch_topics:
-            progress_msg = _progress_messages.get(topic, f"Researching {topic.split(' (')[0].strip() if ' (' in topic else topic}…")
-            yield json.dumps({"type": "progress", "message": progress_msg, "topic": topic}) + "\n"
         logger.debug("[analyze/stream] Batch %s: %s", batch_index, batch_topics)
 
-        cards = await asyncio.to_thread(
-            run_card_batch,
+        # Use streaming version for real-time progress
+        from app.services.research_agent import run_card_batch_streaming
+
+        cards, progress_messages = await run_card_batch_streaming(
             analyze_as=ctx["analyze_as"],
             property_name=ctx["property_name"],
             address=ctx["address"],
@@ -204,7 +230,12 @@ async def _stream_analysis(session_id: str):
             document_context=ctx.get("document_context"),
             card_topics_batch=batch_topics,
             batch_index=batch_index,
+            llm_provider=ctx.get("llm_provider", "anthropic"),
         )
+
+        # Stream all progress messages in real-time
+        for topic, message in progress_messages:
+            yield json.dumps({"type": "progress", "message": message, "topic": topic}) + "\n"
         # Deduplicate by title (case-insensitive): keep first occurrence only
         unique_cards = []
         for c in cards:
@@ -225,9 +256,11 @@ async def _stream_analysis(session_id: str):
         current_base_rent=ctx["current_base_rent"],
         document_context=ctx.get("document_context"),
         cards=all_cards,
+        llm_provider=ctx.get("llm_provider", "anthropic"),
     )
     session["dashboard_summary"] = dashboard_data
     session["cards"] = all_cards
+    _save_sessions()
     payload = {
         **dashboard_data,
         "property": {
@@ -277,20 +310,38 @@ def get_analyze_dashboard(session_id: str):
 class ChatRequest(BaseModel):
     session_id: str
     message: str
+    llm_provider: str | None = None
 
 
 @router.post("/analyze/chat")
 def analyze_chat(body: ChatRequest):
     """
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
-    Returns a concise, to-the-point reply from OpenAI.
+    Returns a concise, to-the-point reply from the configured LLM provider.
     """
     session = _sessions.get(body.session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
+        # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
+        return {
+            "reply": (
+                "Your analysis session has expired or was cleared on the server. "
+                "Run a new analysis from the form to chat with full context (property, documents, and insights)."
+            )
+        }
     message = (body.message or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="message is required")
-    logger.info("[analyze/chat] session_id=%s message_len=%s", body.session_id, len(message))
+    if body.llm_provider:
+        provider_normalized = body.llm_provider.strip().lower()
+        if provider_normalized not in {"openai", "anthropic"}:
+            provider_normalized = "anthropic"
+        session["llm_provider"] = provider_normalized
+        _save_sessions()
+    logger.info(
+        "[analyze/chat] session_id=%s message_len=%s llm_provider=%s",
+        body.session_id,
+        len(message),
+        session.get("llm_provider", "anthropic"),
+    )
     reply = answer_chat(session, message)
     return {"reply": reply}

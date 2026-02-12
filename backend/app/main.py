@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import router as analyze_router
-from app.core.config import OPENAI_API_KEY
+from app.core.config import OPENAI_API_KEY, ANTHROPIC_API_KEY
 
 # CORS: allow origins from env (e.g. frontend URL on Azure) or default to localhost
 _cors_origins = os.environ.get("CORS_ALLOW_ORIGINS", "http://localhost:3000")
@@ -48,9 +48,23 @@ def startup():
     logger.info("Backend started – POST /api/analyze, GET /api/analyze/latest")
     logger.info("Looking for .env at: %s (exists=%s)", env_file, env_file.exists())
     if OPENAI_API_KEY:
-        logger.info("OPENAI_API_KEY is set (length=%d). File summary will use OpenAI.", len(OPENAI_API_KEY))
+        logger.info(
+            "OPENAI_API_KEY is set (length=%d). Research agent can use OpenAI.",
+            len(OPENAI_API_KEY),
+        )
     else:
         logger.warning(
-            "OPENAI_API_KEY is not set. Add OPENAI_API_KEY=sk-... to %s (no quotes, no spaces around =)",
+            "OPENAI_API_KEY is not set. Add OPENAI_API_KEY=sk-... to %s (no quotes, no spaces around =) "
+            "to enable OpenAI-based flows.",
             env_file,
+        )
+
+    if ANTHROPIC_API_KEY:
+        logger.info(
+            "ANTHROPIC_API_KEY is set (length=%d). Research agent can use Anthropic Claude SDK.",
+            len(ANTHROPIC_API_KEY),
+        )
+    else:
+        logger.info(
+            "ANTHROPIC_API_KEY is not set. Anthropic Claude SDK integration will be disabled unless this is configured."
         )

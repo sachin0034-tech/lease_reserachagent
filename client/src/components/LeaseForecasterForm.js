@@ -109,6 +109,16 @@ export default function LeaseForecasterForm() {
       formData.append('address', address);
       formData.append('leasable_area', leasableArea);
       formData.append('current_base_rent', currentBaseRent);
+      let llmProvider = 'anthropic';
+      try {
+        if (typeof window !== 'undefined') {
+          const stored = window.localStorage.getItem('lg_llm_provider');
+          if (stored === 'openai' || stored === 'anthropic') llmProvider = stored;
+        }
+      } catch {
+        // ignore storage errors, default stays anthropic
+      }
+      formData.append('llm_provider', llmProvider);
       if (inputMode === 'text' && documentText.trim()) {
         formData.append('document_text', documentText.trim());
       } else if (inputMode === 'file' && files.length > 0) {
