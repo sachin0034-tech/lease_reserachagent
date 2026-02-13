@@ -20,10 +20,6 @@ def _get_client():
         return None
     try:
         from tavily import TavilyClient
-    except ImportError:
-        logger.debug("[tavily] tavily-python not installed; web search disabled")
-        return None
-    try:
         _tavily_client = TavilyClient(api_key=TAVILY_API_KEY)
         return _tavily_client
     except Exception as e:

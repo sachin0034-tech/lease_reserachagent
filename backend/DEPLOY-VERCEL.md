@@ -64,10 +64,10 @@ Vercel must build and run only the backend folder.
 
 This makes Vercel use:
 
-- `backend/requirements.txt` for dependencies (slim list to stay under 250 MB)
+- `backend/requirements.txt` for dependencies (or `requirements-vercel.txt`—see Step 4b below to stay under 250 MB)
 - `backend/index.py` as the FastAPI entry point (Vercel detects `app` from here)
 
-**Note:** The repo’s `requirements.txt` is a slim set for Vercel (OpenAI only; no Claude SDK, no Tavily). The app still runs: it uses OpenAI and skips web search. For Claude + Tavily, use `requirements-full.txt` and deploy to Railway, Render, or run locally.
+**4b. Stay under 250 MB (optional):** In **Settings → General → Build & Development Settings**, set **Install Command** to: `pip install -r requirements-vercel.txt`. That uses a slim stack (OpenAI only; no Claude, no Tavily). For the full backend, use Railway or Render—see **DEPLOY-FULL-BACKEND.md**.
 
 ---
 
@@ -188,7 +188,7 @@ If you prefer the CLI and your current directory is the **repo root** (not insid
 | Issue | What to do |
 |-------|------------|
 | Build fails | Check the build log. Ensure **Root Directory** is `backend` and `backend/requirements.txt` and `backend/index.py` exist. |
-| **250 MB serverless size exceeded** | This repo uses a **slim** `requirements.txt` (no `claude-agent-sdk`, no `tavily-python`) so the bundle stays under 250 MB. On Vercel you get OpenAI-only and no web search. 1) Ensure **Root Directory** is `backend`. 2) Use `backend/.vercelignore`. 3) **Clear build cache** and redeploy. For Claude + Tavily, use `requirements-full.txt` and deploy to Railway/Render instead. |
+| **250 MB serverless size exceeded** | Set **Install Command** to `pip install -r requirements-vercel.txt` (Settings → Build & Development Settings). Root Directory = `backend`, use `.vercelignore`, clear build cache, redeploy. For full backend (Claude + Tavily) use **Railway** or **Render**—see **DEPLOY-FULL-BACKEND.md**. |
 | 404 on routes | Confirm you’re using the full path (e.g. `/api/analyze`, `/health`). Vercel serves the FastAPI app at the project root. |
 | CORS errors from frontend | Set **CORS_ALLOW_ORIGINS** to the frontend URL (no trailing slash). Add multiple origins separated by commas. |
 | OpenAI errors | Verify **OPENAI_API_KEY** in Project Settings → Environment Variables (and that the key is valid). |
