@@ -55,12 +55,6 @@ _load_sessions()
 BATCH_SIZE = 5
 
 
-@router.get("/health")
-def api_health():
-    """Health check for the analyze API. Returns 200 with status ok."""
-    return {"status": "ok"}
-
-
 @router.post("/analyze")
 async def submit_analyze(
     analyze_as: str = Form(...),
