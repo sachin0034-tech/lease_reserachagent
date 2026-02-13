@@ -2,6 +2,10 @@
   command = "npm run build"
   publish = "build"
 
+# Backend API (Railway). Override in Netlify dashboard if you use a different backend.
+[build.environment]
+  REACT_APP_API_BASE = "https://perceptive-gentleness-production.up.railway.app"
+
 # SPA: all routes serve index.html (React Router)
 [[redirects]]
   from = "/*"
