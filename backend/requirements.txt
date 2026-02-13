@@ -1,3 +1,5 @@
+# Slim stack for Vercel (under 250 MB). OpenAI only; no Claude SDK, no Tavily.
+# For Claude + Tavily use requirements-full.txt and deploy to Railway/Render or run locally.
 fastapi>=0.115.0
 uvicorn>=0.32.0
 pydantic>=2.0.0
@@ -6,5 +8,3 @@ python-dotenv>=1.0.0
 openai>=1.0.0
 pypdf>=5.0.0
 python-docx>=1.0.0
-claude-agent-sdk>=0.1.0
-tavily-python>=0.5.0

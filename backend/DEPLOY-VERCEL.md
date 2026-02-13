@@ -64,8 +64,10 @@ Vercel must build and run only the backend folder.
 
 This makes Vercel use:
 
-- `backend/requirements.txt` for dependencies
+- `backend/requirements.txt` for dependencies (slim list to stay under 250 MB)
 - `backend/index.py` as the FastAPI entry point (Vercel detects `app` from here)
+
+**Note:** The repo’s `requirements.txt` is a slim set for Vercel (OpenAI only; no Claude SDK, no Tavily). The app still runs: it uses OpenAI and skips web search. For Claude + Tavily, use `requirements-full.txt` and deploy to Railway, Render, or run locally.
 
 ---
 
@@ -186,7 +188,7 @@ If you prefer the CLI and your current directory is the **repo root** (not insid
 | Issue | What to do |
 |-------|------------|
 | Build fails | Check the build log. Ensure **Root Directory** is `backend` and `backend/requirements.txt` and `backend/index.py` exist. |
-| **250 MB serverless size exceeded** | 1) Set **Root Directory** to `backend`. 2) Use `backend/.vercelignore` (excludes venv, data/, .env). 3) **Settings → General → Build Cache → Clear**, then redeploy. 4) Add env **VERCEL_BUILDER_DEBUG=1** and redeploy to see size in logs. |
+| **250 MB serverless size exceeded** | This repo uses a **slim** `requirements.txt` (no `claude-agent-sdk`, no `tavily-python`) so the bundle stays under 250 MB. On Vercel you get OpenAI-only and no web search. 1) Ensure **Root Directory** is `backend`. 2) Use `backend/.vercelignore`. 3) **Clear build cache** and redeploy. For Claude + Tavily, use `requirements-full.txt` and deploy to Railway/Render instead. |
 | 404 on routes | Confirm you’re using the full path (e.g. `/api/analyze`, `/health`). Vercel serves the FastAPI app at the project root. |
 | CORS errors from frontend | Set **CORS_ALLOW_ORIGINS** to the frontend URL (no trailing slash). Add multiple origins separated by commas. |
 | OpenAI errors | Verify **OPENAI_API_KEY** in Project Settings → Environment Variables (and that the key is valid). |
