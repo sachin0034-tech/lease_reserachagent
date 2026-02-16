@@ -133,7 +133,7 @@ Now your frontend will call your backend running on Azure.
 
 ---
 
-### 9. Summary checklist
+### 9. Summary checklist (App Service)
 
 - [ ] Azure account + GitHub repo ready.
 - [ ] `gunicorn` added to `backend/requirements.txt` and pushed.
@@ -144,3 +144,65 @@ Now your frontend will call your backend running on Azure.
 - [ ] `/health` and `/docs` load from `https://<your-name>.azurewebsites.net`.
 - [ ] Frontend `REACT_APP_API_BASE` points to that URL.
 
+---
+
+### 10. (Optional) Create a new Azure VM (step‑by‑step)
+
+If you prefer to run everything on your **own virtual machine** instead of App Service, follow these steps to create a VM. (This just creates the VM; you can then SSH in and set up Python, clone the repo, etc.)
+
+#### 10.1 Create the VM in Azure Portal
+
+1. Go to `https://portal.azure.com` and sign in.
+2. In the left sidebar (or top search bar), click **Create a resource**.
+3. In the search box, type **Virtual machine** and press Enter.
+4. Click **Create** under *Virtual machine*.
+5. On the **Basics** tab:
+   - **Subscription**: choose your subscription.
+   - **Resource group**: select an existing one or click **Create new** (e.g. `leaseagent-vm-rg`).
+   - **Virtual machine name**: e.g. `leaseagent-vm`.
+   - **Region**: pick the closest region.
+   - **Image**: choose **Ubuntu Server 22.04 LTS** (recommended).
+   - **Size**: pick a small size (e.g. `B1s` or similar) for dev/testing.
+6. **Administrator account**:
+   - **Authentication type**: choose **SSH public key** (more secure) or **Password**.
+   - If **SSH public key**:
+     - **Username**: e.g. `azureuser`.
+     - **SSH public key source**: *Use existing public key* or *Generate new key pair*.
+   - If **Password**:
+     - Set a strong password and remember it.
+7. **Inbound port rules**:
+   - For now, check **SSH (22)** so you can connect.
+   - You can add HTTP/HTTPS later in **Networking**.
+8. Click **Review + create**, then **Create**.
+9. Wait for deployment to finish, then click **Go to resource**.
+
+#### 10.2 Open HTTP (port 80) on the VM
+
+1. On the VM’s page, in the left menu, click **Networking**.
+2. Under **Inbound port rules**, click **Add inbound port rule**.
+3. Set:
+   - **Destination port ranges**: `80`.
+   - **Protocol**: `TCP`.
+   - **Priority**: leave default or lower number if needed.
+   - **Name**: e.g. `allow-http`.
+4. Click **Add**.
+
+Later, if you run your app on another port (e.g. 8000), repeat the same steps with **Destination port ranges** = `8000`.
+
+#### 10.3 Connect to the VM (SSH)
+
+1. On the VM’s **Overview** page, note the **Public IP address**.
+2. Click **Connect** at the top, then choose **SSH**.
+3. Azure shows you an example SSH command, like:
+
+   `ssh azureuser@<PUBLIC_IP>`
+
+4. In your local terminal, run that command (use your actual username and IP).
+5. Accept the prompt (`yes`) the first time you connect.
+
+Now you are inside the VM’s Linux shell and can:
+- Install system packages (`sudo apt update`, `sudo apt install python3-pip git`).
+- Clone your repo.
+- Create a virtualenv and run your FastAPI app (e.g. with `uvicorn` or `gunicorn` + `nginx`).
+
+> This doc focuses on **creating the VM itself**. When you’re ready, I can also add a section that shows exactly how to install Python, clone this project, and run the backend on the VM behind Nginx.
