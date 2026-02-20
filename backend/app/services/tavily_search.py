@@ -30,7 +30,7 @@ def _get_client():
 def search_tavily(
     query: str,
     max_results: int = 10,
-    search_depth: str = "basic",  # "basic" is faster than "advanced"
+    search_depth: str = "basic",
 ) -> list[dict[str, str]]:
     """
     Run a Tavily search and return a list of {title, url, content} for each result.

@@ -1405,5 +1405,14 @@
         "source_url": "https://assets.eu.ctfassets.net/1e76kztii87u/1PqcOo6pZKO7JCQzaeJ3Kt/21045e8275b9393655d7df3fd03abb0b/01-2025_Half-Year_Results.pdf"
       }
     ]
+  },
+  "1453015f-425c-4308-8d86-24702574f53b": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
   }
 }

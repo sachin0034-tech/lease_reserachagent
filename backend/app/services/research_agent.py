@@ -8,7 +8,6 @@ Primary providers:
 import asyncio
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any
 
 from openai import OpenAI
@@ -506,49 +505,35 @@ async def run_card_batch_streaming(
         progress_messages.append((None, f"Completed analysis: {len(cards)} insights found"))
         return cards, progress_messages
 
-    # Anthropic provider path with streaming: OPTIMIZED - parallel Tavily searches, skip query generation
+    # Anthropic provider path with streaming: LLM generates search queries, we run Tavily, then LLM produces cards
     search_results_anthropic: list[dict] = []
     try:
+        progress_messages.append((None, "Preparing search queries..."))
+        queries_prompt = (
+            f"Property: {property_name}\nAddress: {address}\n\nTopics (one search query per topic, same order):\n"
+            + "\n".join(f"{i}. {t}" for i, t in enumerate(card_topics_batch, 1))
+            + "\n\nOutput JSON only: {\"queries\": [\"query1\", \"query2\", ...]}"
+        )
+        queries_content = await asyncio.to_thread(
+            _claude_query_blocking,
+            prompt=queries_prompt,
+            system_prompt=BUILD_QUERIES_MESSAGE,
+            output_schema={"type": "object", "properties": {"queries": {"type": "array", "items": {"type": "string"}}}, "required": ["queries"]},
+        )
+        queries_data = json.loads(queries_content or "{}")
+        queries_list = queries_data.get("queries") or []
+        if len(queries_list) < len(card_topics_batch):
+            queries_list.extend([f"{address} {property_name} retail lease market data"] * (len(card_topics_batch) - len(queries_list)))
         progress_messages.append((None, "Searching the web for sources..."))
-        # Build queries directly from topics (skip Claude query generation step for speed)
-        queries_list = []
-        for topic in card_topics_batch:
-            topic_short = topic.split(" (")[0].strip() if " (" in topic else topic
-            query = f"{address} {property_name} {topic_short} retail lease market"
-            queries_list.append(query)
-        
-        # PARALLELIZE Tavily searches instead of sequential (major speedup)
-        async def search_one(query_str: str) -> list[dict]:
-            """Run one Tavily search asynchronously."""
-            return await asyncio.to_thread(tavily_search_tavily, query_str, max_results=5)  # Reduced from 8 to 5
-        
-        # Run all searches in parallel
-        search_tasks = [search_one(q) for q in queries_list]
-        all_results_lists = await asyncio.gather(*search_tasks, return_exceptions=True)
-        
-        # Collect and deduplicate results
         seen_anthropic: set[str] = set()
-        for results_list in all_results_lists:
-            if isinstance(results_list, Exception):
-                logger.warning("[research_agent] Tavily search error: %s", results_list)
-                continue
-            for r in results_list:
+        for q in queries_list[: len(card_topics_batch)]:
+            query_str = (q or "").strip() or f"{address} retail lease"
+            results = await asyncio.to_thread(tavily_search_tavily, query_str, 8)
+            for r in results:
                 u = (r.get("url") or "").strip()
                 if u and u not in seen_anthropic:
                     seen_anthropic.add(u)
                     search_results_anthropic.append(r)
-        
-        # Limit total results sent to Claude (reduce context size for faster processing)
-        if len(search_results_anthropic) > 12:
-            search_results_anthropic = search_results_anthropic[:12]
-            logger.info("[research_agent] Limited search results to 12 for faster Claude processing")
-        
-        # Truncate content in each result to reduce token count
-        for r in search_results_anthropic:
-            if "content" in r and len(r["content"]) > 800:  # Reduced from 2000 to 800
-                r["content"] = r["content"][:800] + "..."
-        
-        logger.info("[research_agent] Collected %s unique search results (parallel)", len(search_results_anthropic))
     except Exception as e:
         logger.warning("[research_agent] Anthropic search setup failed: %s", e)
 
@@ -727,45 +712,32 @@ def run_card_batch(
         )
         return cards
 
-    # Anthropic provider path: OPTIMIZED - parallel Tavily searches, skip query generation
+    # Anthropic provider path: LLM generates search queries, we run Tavily, then LLM produces cards
     search_results_anthropic_sync: list[dict] = []
     try:
-        # Build queries directly from topics (skip Claude query generation step for speed)
-        queries_list = []
-        for topic in card_topics_batch:
-            topic_short = topic.split(" (")[0].strip() if " (" in topic else topic
-            query = f"{address} {property_name} {topic_short} retail lease market"
-            queries_list.append(query)
-        
-        # PARALLELIZE Tavily searches using ThreadPoolExecutor (major speedup)
+        queries_prompt = (
+            f"Property: {property_name}\nAddress: {address}\n\nTopics (one search query per topic, same order):\n"
+            + "\n".join(f"{i}. {t}" for i, t in enumerate(card_topics_batch, 1))
+            + "\n\nOutput JSON only: {\"queries\": [\"query1\", \"query2\", ...]}"
+        )
+        queries_content = _claude_query_blocking(
+            prompt=queries_prompt,
+            system_prompt=BUILD_QUERIES_MESSAGE,
+            output_schema={"type": "object", "properties": {"queries": {"type": "array", "items": {"type": "string"}}}, "required": ["queries"]},
+        )
+        queries_data = json.loads(queries_content or "{}")
+        queries_list = queries_data.get("queries") or []
+        if len(queries_list) < len(card_topics_batch):
+            queries_list.extend([f"{address} {property_name} retail lease market data"] * (len(card_topics_batch) - len(queries_list)))
         seen_sync: set[str] = set()
-        with ThreadPoolExecutor(max_workers=5) as executor:
-            # Submit all searches in parallel
-            future_to_query = {executor.submit(tavily_search_tavily, q, 5): q for q in queries_list}  # Reduced from 8 to 5
-            
-            # Collect results as they complete
-            for future in as_completed(future_to_query):
-                try:
-                    results = future.result()
-                    for r in results:
-                        u = (r.get("url") or "").strip()
-                        if u and u not in seen_sync:
-                            seen_sync.add(u)
-                            search_results_anthropic_sync.append(r)
-                except Exception as e:
-                    logger.warning("[research_agent] Tavily search error: %s", e)
-        
-        # Limit total results sent to Claude (reduce context size for faster processing)
-        if len(search_results_anthropic_sync) > 12:
-            search_results_anthropic_sync = search_results_anthropic_sync[:12]
-            logger.info("[research_agent] Limited search results to 12 for faster Claude processing")
-        
-        # Truncate content in each result to reduce token count
-        for r in search_results_anthropic_sync:
-            if "content" in r and len(r["content"]) > 800:  # Reduced from 2000 to 800
-                r["content"] = r["content"][:800] + "..."
-        
-        logger.info("[research_agent] Collected %s unique search results (parallel)", len(search_results_anthropic_sync))
+        for q in queries_list[: len(card_topics_batch)]:
+            query_str = (q or "").strip() or f"{address} retail lease"
+            results = tavily_search_tavily(query_str, 8)
+            for r in results:
+                u = (r.get("url") or "").strip()
+                if u and u not in seen_sync:
+                    seen_sync.add(u)
+                    search_results_anthropic_sync.append(r)
     except Exception as e:
         logger.warning("[research_agent] Anthropic search setup failed: %s", e)
 

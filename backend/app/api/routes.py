@@ -4,6 +4,12 @@ import logging
 import uuid
 from pathlib import Path
 
+try:
+    import fcntl
+    HAS_FCNTL = True
+except ImportError:
+    HAS_FCNTL = False  # Windows doesn't have fcntl
+
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -20,55 +26,68 @@ router = APIRouter(prefix="/api", tags=["analyze"])
 # In-memory store for the latest submission (for debugging / step-by-step flow)
 _latest_analyze_payload: dict | None = None
 
-# Session store for streaming analysis: session_id -> context for LLM (persisted to file).
-# NOTE: Under multi-worker servers (e.g. gunicorn), each worker has its own in-memory
-# _sessions dict. We therefore always persist to disk and reload on demand when a
-# session_id is missing, so chat/dashboard calls on any worker can see sessions that
-# were created by another worker.
+# Session store for streaming analysis: session_id -> context for LLM (persisted to file)
 _sessions: dict[str, dict] = {}
 _SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
 
 
 def _load_sessions() -> None:
-    """Load sessions from disk so they survive server restarts / worker changes."""
+    """Load sessions from disk so they survive server restarts."""
     global _sessions
     if not _SESSIONS_FILE.exists():
         return
     try:
-        raw = _SESSIONS_FILE.read_text(encoding="utf-8")
+        # Use file locking when reading to avoid reading while another worker is writing
+        with open(_SESSIONS_FILE, "r", encoding="utf-8") as f:
+            if HAS_FCNTL:
+                try:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)  # Shared lock for reading
+                    raw = f.read()
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Release lock
+                except (IOError, OSError):
+                    # File locking failed, fall back to regular read
+                    raw = f.read()
+            else:
+                raw = f.read()
         data = json.loads(raw)
         if isinstance(data, dict):
+            # Replace (not update) to ensure we get the latest from disk
+            _sessions.clear()
             _sessions.update(data)
             logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), _SESSIONS_FILE)
     except Exception as e:
         logger.warning("[sessions] Could not load sessions from %s: %s", _SESSIONS_FILE, e)
 
 
-def _save_sessions() -> None:
-    """Persist sessions to disk."""
-    try:
-        _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
-    except Exception as e:
-        logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
-
-
 def _get_session(session_id: str) -> dict | None:
-    """
-    Get a session by id.
-
-    Handles multi-worker servers by reloading sessions from disk on cache miss so
-    that a worker that did *not* create the session can still see it.
-    """
-    session = _sessions.get(session_id)
-    if session is not None:
-        return session
-    # Cache miss – reload from disk in case another worker created the session.
+    """Get session, reloading from disk first to ensure consistency across workers."""
     _load_sessions()
     return _sessions.get(session_id)
 
 
-# Load persisted sessions on module load for warm cache in each worker.
+def _save_sessions() -> None:
+    """Persist sessions to disk with file locking to prevent race conditions."""
+    try:
+        _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        # Use file locking to prevent corruption when multiple workers write simultaneously
+        with open(_SESSIONS_FILE, "w", encoding="utf-8") as f:
+            if HAS_FCNTL:
+                try:
+                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)  # Exclusive lock
+                    json.dump(_sessions, f, indent=2)
+                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Release lock
+                except (IOError, OSError):
+                    # File locking failed, fall back to regular write
+                    f.seek(0)
+                    f.truncate()
+                    json.dump(_sessions, f, indent=2)
+            else:
+                json.dump(_sessions, f, indent=2)
+    except Exception as e:
+        logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
+
+
+# Load persisted sessions on module load
 _load_sessions()
 
 BATCH_SIZE = 5
@@ -338,10 +357,10 @@ def analyze_chat(body: ChatRequest):
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
     Returns a concise, to-the-point reply from the configured LLM provider.
     """
+    # Reload sessions from disk to ensure we see sessions created by other workers
     session = _get_session(body.session_id)
     if not session:
-        # Instead of 404, return a friendly message so the UI doesn't break when sessions
-        # are genuinely missing (e.g. file deleted or very old sessions cleaned up).
+        # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
         return {
             "reply": (
                 "Your analysis session has expired or was cleared on the server. "
