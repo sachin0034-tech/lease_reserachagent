@@ -297,13 +297,12 @@ function SettingsModal({ open, onClose, onSave }) {
   useEffect(() => {
     if (!open) return;
     const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lg_llm_provider') : null;
-    if (stored === 'anthropic') {
-      setOpenaiEnabled(false);
-      setAnthropicEnabled(true);
-    } else if (stored === 'openai') {
+    // App default is OpenAI. Respect explicit 'openai'; treat missing or legacy 'anthropic' as default (OpenAI).
+    if (stored === 'openai') {
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
     } else {
+      // No stored value, or stored was 'anthropic' (old default) → show and persist OpenAI as default
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
       try {
