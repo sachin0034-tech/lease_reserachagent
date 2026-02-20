@@ -20,13 +20,17 @@ router = APIRouter(prefix="/api", tags=["analyze"])
 # In-memory store for the latest submission (for debugging / step-by-step flow)
 _latest_analyze_payload: dict | None = None
 
-# Session store for streaming analysis: session_id -> context for LLM (persisted to file)
+# Session store for streaming analysis: session_id -> context for LLM (persisted to file).
+# NOTE: Under multi-worker servers (e.g. gunicorn), each worker has its own in-memory
+# _sessions dict. We therefore always persist to disk and reload on demand when a
+# session_id is missing, so chat/dashboard calls on any worker can see sessions that
+# were created by another worker.
 _sessions: dict[str, dict] = {}
 _SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
 
 
 def _load_sessions() -> None:
-    """Load sessions from disk so they survive server restarts."""
+    """Load sessions from disk so they survive server restarts / worker changes."""
     global _sessions
     if not _SESSIONS_FILE.exists():
         return
@@ -49,7 +53,22 @@ def _save_sessions() -> None:
         logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
 
 
-# Load persisted sessions on module load
+def _get_session(session_id: str) -> dict | None:
+    """
+    Get a session by id.
+
+    Handles multi-worker servers by reloading sessions from disk on cache miss so
+    that a worker that did *not* create the session can still see it.
+    """
+    session = _sessions.get(session_id)
+    if session is not None:
+        return session
+    # Cache miss – reload from disk in case another worker created the session.
+    _load_sessions()
+    return _sessions.get(session_id)
+
+
+# Load persisted sessions on module load for warm cache in each worker.
 _load_sessions()
 
 BATCH_SIZE = 5
@@ -197,7 +216,7 @@ async def analyze_start(
 
 async def _stream_analysis(session_id: str):
     """Generator: yield ndjson lines (progress + cards_batch + dashboard + done)."""
-    session = _sessions.get(session_id)
+    session = _get_session(session_id)
     if not session:
         yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
         return
@@ -292,7 +311,7 @@ async def analyze_stream(session_id: str):
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
     """Return stored dashboard summary + property + cards for the final dashboard page."""
-    session = _sessions.get(session_id)
+    session = _get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
@@ -319,9 +338,10 @@ def analyze_chat(body: ChatRequest):
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
     Returns a concise, to-the-point reply from the configured LLM provider.
     """
-    session = _sessions.get(body.session_id)
+    session = _get_session(body.session_id)
     if not session:
-        # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
+        # Instead of 404, return a friendly message so the UI doesn't break when sessions
+        # are genuinely missing (e.g. file deleted or very old sessions cleaned up).
         return {
             "reply": (
                 "Your analysis session has expired or was cleared on the server. "
