@@ -21,6 +21,10 @@ router = APIRouter(prefix="/api", tags=["analyze"])
 _latest_analyze_payload: dict | None = None
 
 # Session store for streaming analysis: session_id -> context for LLM (persisted to file)
+# NOTE: In multi-worker deployments (e.g., gunicorn -w 4), each worker has its own
+# in-memory copy of `_sessions`. We therefore always fall back to the JSON file
+# when a session_id is missing locally so that any worker can see sessions that
+# were created in another worker process.
 _sessions: dict[str, dict] = {}
 _SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
 
@@ -47,6 +51,23 @@ def _save_sessions() -> None:
         _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
     except Exception as e:
         logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
+
+
+def _get_session(session_id: str) -> dict | None:
+    """
+    Fetch a session by id, reloading from disk first if the session is not
+    present in this worker's in-memory `_sessions` dict.
+
+    This is important for multi-worker servers (gunicorn, uvicorn with
+    multiple workers), where different requests for the same session can hit
+    different processes.
+    """
+    session = _sessions.get(session_id)
+    if session is not None:
+        return session
+    # Refresh from disk and try again
+    _load_sessions()
+    return _sessions.get(session_id)
 
 
 # Load persisted sessions on module load
@@ -197,7 +218,7 @@ async def analyze_start(
 
 async def _stream_analysis(session_id: str):
     """Generator: yield ndjson lines (progress + cards_batch + dashboard + done)."""
-    session = _sessions.get(session_id)
+    session = _get_session(session_id)
     if not session:
         yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
         return
@@ -292,7 +313,7 @@ async def analyze_stream(session_id: str):
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
     """Return stored dashboard summary + property + cards for the final dashboard page."""
-    session = _sessions.get(session_id)
+    session = _get_session(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
@@ -319,7 +340,7 @@ def analyze_chat(body: ChatRequest):
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
     Returns a concise, to-the-point reply from the configured LLM provider.
     """
-    session = _sessions.get(body.session_id)
+    session = _get_session(body.session_id)
     if not session:
         # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
         return {

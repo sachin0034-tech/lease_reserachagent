@@ -206,3 +206,238 @@ Now you are inside the VM’s Linux shell and can:
 - Create a virtualenv and run your FastAPI app (e.g. with `uvicorn` or `gunicorn` + `nginx`).
 
 > This doc focuses on **creating the VM itself**. When you’re ready, I can also add a section that shows exactly how to install Python, clone this project, and run the backend on the VM behind Nginx.
+
+---
+
+### 11. Deploy backend to your VM (step‑by‑step)
+
+Once you're SSH'd into your VM, follow these commands **in order**:
+
+#### 11.1 Update system and install dependencies
+
+```bash
+# Update package list
+sudo apt update
+
+# Install Python 3, pip, git, and other tools
+sudo apt install -y python3 python3-pip python3-venv git
+
+# Verify installations
+python3 --version
+git --version
+```
+
+#### 11.2 Clone your repository
+
+```bash
+# Navigate to home directory
+cd ~
+
+# Clone your repo (replace with your actual GitHub repo URL)
+git clone https://github.com/YOUR_USERNAME/lease_reserachagent.git
+
+# Or if using SSH:
+# git clone git@github.com:YOUR_USERNAME/lease_reserachagent.git
+
+# Enter the project directory
+cd lease_reserachagent
+```
+
+**Replace `YOUR_USERNAME`** with your actual GitHub username.
+
+#### 11.3 Create virtual environment and install Python packages
+
+```bash
+# Go to backend directory
+cd backend
+
+# Create virtual environment
+python3 -m venv venv
+
+# Activate virtual environment
+source venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install all requirements
+pip install -r requirements.txt
+```
+
+#### 11.4 Set environment variables
+
+Create a `.env` file in the `backend` directory:
+
+```bash
+# Still in backend/ directory with venv activated
+nano .env
+```
+
+Add these lines (replace with your actual API keys):
+
+```bash
+OPENAI_API_KEY=your-openai-key-here
+ANTHROPIC_API_KEY=your-anthropic-key-here
+TAVILY_API_KEY=your-tavily-key-here
+CORS_ALLOW_ORIGINS=https://your-frontend-url.netlify.app
+```
+
+- Press `Ctrl+X`, then `Y`, then `Enter` to save and exit nano.
+
+#### 11.5 Test the backend locally (optional)
+
+```bash
+# Still in backend/ directory with venv activated
+uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+- Press `Ctrl+C` to stop it after testing.
+- If it works, you'll see FastAPI startup messages.
+
+#### 11.6 Run backend with Gunicorn (production)
+
+```bash
+# Still in backend/ directory with venv activated
+gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+```
+
+This runs your backend on **port 8000**. Keep this terminal open, or use the next step to run it as a service.
+
+#### 11.7 (Optional) Run as a systemd service (keeps it running after logout)
+
+Create a systemd service file:
+
+```bash
+# Exit virtual environment first
+deactivate
+
+# Create service file
+sudo nano /etc/systemd/system/leaseagent-backend.service
+```
+
+Paste this content (adjust paths if needed):
+
+```ini
+[Unit]
+Description=Lease Agent Backend API
+After=network.target
+
+[Service]
+User=leaseagent-vm
+WorkingDirectory=/home/azureuser/lease_reserachagent/backend
+Environment="PATH=/home/azureuser/lease_reserachagent/backend/venv/bin"
+ExecStart=/home/azureuser/lease_reserachagent/backend/venv/bin/gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+- Press `Ctrl+X`, then `Y`, then `Enter` to save.
+
+**Replace `azureuser`** with your actual VM username if different.
+
+Enable and start the service:
+
+```bash
+# Reload systemd
+sudo systemctl daemon-reload
+
+# Enable service (starts on boot)
+sudo systemctl enable leaseagent-backend
+
+# Start the service
+sudo systemctl start leaseagent-backend
+
+# Check status
+sudo systemctl status leaseagent-backend
+```
+
+If you see "active (running)", your backend is running as a service.
+
+#### 11.8 Open port 8000 in Azure (if not already open)
+
+1. In Azure Portal → your VM → **Networking**.
+2. Click **Add inbound port rule**.
+3. Set:
+   - **Destination port ranges**: `8000`
+   - **Protocol**: `TCP`
+   - **Name**: `allow-backend`
+4. Click **Add**.
+
+#### 11.9 Test your backend
+
+From your local browser or terminal:
+
+```bash
+# Health check
+curl http://<VM_PUBLIC_IP>:8000/health
+
+# API docs
+# Open in browser: http://<VM_PUBLIC_IP>:8000/docs
+```
+
+Replace `<VM_PUBLIC_IP>` with your VM's public IP (e.g. `4.229.225.12`).
+
+#### 11.10 (Optional) Set up Nginx reverse proxy (for port 80/HTTPS)
+
+If you want to serve on port 80 (HTTP) or set up HTTPS later:
+
+```bash
+# Install Nginx
+sudo apt install -y nginx
+
+# Create Nginx config
+sudo nano /etc/nginx/sites-available/leaseagent-backend
+```
+
+Paste:
+
+```nginx
+server {
+    listen 80;
+    server_name <VM_PUBLIC_IP>;
+
+    location / {
+        proxy_pass http://127.0.0.1:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}
+```
+
+- Replace `<VM_PUBLIC_IP>` with your VM's IP.
+- Save (`Ctrl+X`, `Y`, `Enter`).
+
+Enable and restart Nginx:
+
+```bash
+# Enable site
+sudo ln -s /etc/nginx/sites-available/leaseagent-backend /etc/nginx/sites-enabled/
+
+# Test config
+sudo nginx -t
+
+# Restart Nginx
+sudo systemctl restart nginx
+```
+
+Now your backend is accessible at `http://<VM_PUBLIC_IP>/health` (port 80).
+
+---
+
+### 12. Summary checklist (VM deployment)
+
+- [ ] VM created and SSH access working.
+- [ ] Port 8000 (and/or 80) opened in Azure Networking.
+- [ ] System updated, Python 3, pip, git installed.
+- [ ] Repository cloned to VM.
+- [ ] Virtual environment created and activated.
+- [ ] `requirements.txt` installed successfully.
+- [ ] `.env` file created with API keys.
+- [ ] Backend tested with `uvicorn` or `gunicorn`.
+- [ ] Backend running (either manually or as systemd service).
+- [ ] `/health` endpoint accessible from browser at `http://<VM_IP>:8000/health`.
+- [ ] Frontend `REACT_APP_API_BASE` updated to `http://<VM_IP>:8000` (or `http://<VM_IP>` if using Nginx).
