@@ -286,9 +286,9 @@ function SettingsModal({ open, onClose, onSave }) {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
   const [documents, setDocuments] = useState([]);
-  // Default: Anthropic. Only one provider can be enabled. Stored value applied when modal opens.
-  const [openaiEnabled, setOpenaiEnabled] = useState(false);
-  const [anthropicEnabled, setAnthropicEnabled] = useState(true);
+  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
+  const [openaiEnabled, setOpenaiEnabled] = useState(true);
+  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
   const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
   const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
   const dropdownRef = useRef(null);
@@ -304,8 +304,11 @@ function SettingsModal({ open, onClose, onSave }) {
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
     } else {
-      setOpenaiEnabled(false);
-      setAnthropicEnabled(true);
+      setOpenaiEnabled(true);
+      setAnthropicEnabled(false);
+      try {
+        if (typeof window !== 'undefined') window.localStorage.setItem('lg_llm_provider', 'openai');
+      } catch (_) {}
     }
   }, [open]);
 
@@ -584,14 +587,56 @@ function SettingsModal({ open, onClose, onSave }) {
   );
 }
 
+const SESSION_STORAGE_KEY = 'lg_analysis_session_id';
+
 export default function Dashboard() {
   const location = useLocation();
   const state = location.state || {};
-  const dashboardSummary = state.dashboardSummary || {};
-  const allCards = dedupeCardsByTitle(state.cards || []);
+  // Prefer state (from navigation); fall back to localStorage so chat works after refresh or return later
+  const sessionIdFromState = state.sessionId || null;
+  const [sessionId, setSessionId] = useState(() => {
+    if (sessionIdFromState) return sessionIdFromState;
+    try {
+      return (typeof window !== 'undefined' && window.localStorage.getItem(SESSION_STORAGE_KEY)) || null;
+    } catch {
+      return null;
+    }
+  });
+  // Sync: when we have state.sessionId, persist it and use it; when state updates with new session, update local state
+  useEffect(() => {
+    if (state.sessionId) {
+      setSessionId(state.sessionId);
+      try {
+        if (typeof window !== 'undefined') window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId);
+      } catch (_) {}
+    }
+  }, [state.sessionId]);
+
+  // Restore dashboard data when we have sessionId (e.g. from localStorage after refresh) but no state
+  const [restoredData, setRestoredData] = useState(null);
+  const restoredSummary = restoredData?.dashboard_summary ?? null;
+  const restoredCards = restoredData?.cards ?? [];
+  const restoredProperty = restoredData?.property ?? {};
+  useEffect(() => {
+    const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+    if (!sessionId || state.dashboardSummary) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
+        if (!res.ok || cancelled) return;
+        const data = await res.json();
+        if (!cancelled) setRestoredData(data);
+      } catch (_) {}
+    })();
+    return () => { cancelled = true; };
+  }, [sessionId, state.dashboardSummary]);
+
+  const dashboardSummary = state.dashboardSummary || restoredSummary || {};
+  const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
   const cards = allCards.filter(hasCardData);
-  const property = state.property || dashboardSummary?.property || {};
-  const sessionId = state.sessionId || null;
+  const property = state.property || dashboardSummary?.property || restoredProperty || {};
+
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [saveToastVisible, setSaveToastVisible] = useState(false);
@@ -622,14 +667,14 @@ export default function Dashboard() {
     }
     setChatLoading(true);
     try {
-      let llmProvider = 'anthropic';
+      let llmProvider = 'openai';
       try {
         if (typeof window !== 'undefined') {
           const stored = window.localStorage.getItem('lg_llm_provider');
           if (stored === 'openai' || stored === 'anthropic') llmProvider = stored;
         }
       } catch {
-        // ignore storage errors, default stays anthropic
+        // ignore storage errors, default stays openai
       }
       const res = await fetch(`${API_BASE}/api/analyze/chat`, {
         method: 'POST',

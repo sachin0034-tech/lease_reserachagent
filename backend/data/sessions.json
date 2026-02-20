@@ -1414,5 +1414,456 @@
     "current_base_rent": "42.00",
     "document_context": null,
     "llm_provider": "anthropic"
+  },
+  "d259c70c-4846-4c82-be13-77b5b4d8ea6a": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic",
+    "dashboard_summary": {
+      "fair_market_rent": 42.0,
+      "confidence_score": 0,
+      "vs_current_pct": 0.0,
+      "recommendations": {
+        "ideal_term": "\u2014",
+        "ideal_term_reasoning": "",
+        "negotiation_leverage": "\u2014",
+        "negotiation_leverage_reasoning": "",
+        "renewals": "\u2014",
+        "renewals_reasoning": ""
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 42.0,
+        "comparison_pct": 0,
+        "comparison_text": ""
+      },
+      "recommendations_source": "fallback"
+    },
+    "cards": []
+  },
+  "8ffe39a0-0a6d-4d93-a810-07b7b7f71e20": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic",
+    "dashboard_summary": {
+      "fair_market_rent": 42.0,
+      "confidence_score": 0,
+      "vs_current_pct": 0.0,
+      "recommendations": {
+        "ideal_term": "\u2014",
+        "ideal_term_reasoning": "",
+        "negotiation_leverage": "\u2014",
+        "negotiation_leverage_reasoning": "",
+        "renewals": "\u2014",
+        "renewals_reasoning": ""
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 42.0,
+        "comparison_pct": 0,
+        "comparison_text": ""
+      },
+      "recommendations_source": "fallback"
+    },
+    "cards": []
+  },
+  "417bed6a-af77-4c56-ac45-589c3b491a2b": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "bea4e056-6c32-4aab-b057-fb7b90ed92d6": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "a4fd0e9e-4057-4076-be57-9c0352733ddd": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "d00dccd9-b0f5-4acb-b096-29066085e904": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "ad84aebe-7d06-4be9-96b2-01d32879fd73": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "a10b6b30-5876-4dd4-a729-218b21965091": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "27b5c316-bdac-4c95-9d6c-16a9b28557fd": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "4b9ccb18-1d6b-424f-8031-b845161e70d3": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "eea1e6c8-bd5e-472a-b815-ddbe26dfbd68": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "ddbda50c-84db-4d29-a45b-7fb285451b15": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic",
+    "dashboard_summary": {
+      "fair_market_rent": 42.0,
+      "confidence_score": 0,
+      "vs_current_pct": 0.0,
+      "recommendations": {
+        "ideal_term": "\u2014",
+        "ideal_term_reasoning": "",
+        "negotiation_leverage": "\u2014",
+        "negotiation_leverage_reasoning": "",
+        "renewals": "\u2014",
+        "renewals_reasoning": ""
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 42.0,
+        "comparison_pct": 0,
+        "comparison_text": ""
+      },
+      "recommendations_source": "fallback"
+    },
+    "cards": []
+  },
+  "5a213f13-48fc-4c62-9438-f56f82257525": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic"
+  },
+  "46c117f2-5e3a-4a2d-ac4c-b67f6fc40177": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic",
+    "dashboard_summary": {
+      "fair_market_rent": 42.0,
+      "confidence_score": 0,
+      "vs_current_pct": 0.0,
+      "recommendations": {
+        "ideal_term": "\u2014",
+        "ideal_term_reasoning": "",
+        "negotiation_leverage": "\u2014",
+        "negotiation_leverage_reasoning": "",
+        "renewals": "\u2014",
+        "renewals_reasoning": ""
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 42.0,
+        "comparison_pct": 0,
+        "comparison_text": ""
+      },
+      "recommendations_source": "fallback"
+    },
+    "cards": []
+  },
+  "f0dc6168-44b0-4223-947c-38a0624751e3": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "anthropic",
+    "dashboard_summary": {
+      "fair_market_rent": 42.0,
+      "confidence_score": 0,
+      "vs_current_pct": 0.0,
+      "recommendations": {
+        "ideal_term": "\u2014",
+        "ideal_term_reasoning": "",
+        "negotiation_leverage": "\u2014",
+        "negotiation_leverage_reasoning": "",
+        "renewals": "\u2014",
+        "renewals_reasoning": ""
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 42.0,
+        "comparison_pct": 0,
+        "comparison_text": ""
+      },
+      "recommendations_source": "fallback"
+    },
+    "cards": []
+  },
+  "b93c8ee7-7374-40c5-94ef-b725c7a51a2e": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai",
+    "dashboard_summary": {
+      "fair_market_rent": 40.0,
+      "confidence_score": 75,
+      "vs_current_pct": -4.76,
+      "recommendations": {
+        "ideal_term": "3 Years",
+        "ideal_term_reasoning": "A shorter term is suggested due to market instability reflected in the lack of significant income growth and negative traffic counts, indicating uncertainty in long-term tenant viability.",
+        "negotiation_leverage": "Moderate (infrastructure improvements may have some positive impacts)",
+        "negotiation_leverage_reasoning": "While there are developments that could enhance foot traffic, other factors like stagnant income growth and high demand leverage for landlords limit negotiation strength.",
+        "renewals": "Cap at 2% YoY",
+        "renewals_reasoning": "This renewal stance is based on anticipated rental increases according to market conditions, allowing for slight adjustments that align with local economic trends."
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 40.0,
+        "comparison_pct": 5.0,
+        "comparison_text": "This property is above the current average rent in the market."
+      },
+      "recommendations_source": "openai"
+    },
+    "cards": [
+      {
+        "title": "Local Income Trends",
+        "impact": "negative",
+        "confidence_score": 60,
+        "source": "Lee & Associates Market",
+        "insight": "Current local income trends indicate stagnation, which may impact tenants' ability to pay higher rents.",
+        "data_evidence": "Current average income growth is reported at only 1% year-over-year in Lake Louise.",
+        "why_it_matters": "This is negative for you as a tenant because stagnant income may indicate limited spending capacity of consumers, weakening your position to support a higher rent request.",
+        "baseline_pct": 100,
+        "current_trend_pct": 60,
+        "source_url": "https://www.lee-associates.com/wp-content/uploads/2025/07/2025.Q2-Market-Report_Final.pdf"
+      },
+      {
+        "title": "Traffic Count Analysis",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "Lee & Associates Market",
+        "insight": "Traffic counts have shown a decline of 5% compared to last year, indicating reduced foot traffic in the area.",
+        "data_evidence": "Traffic Counts Q2 2025 show 2,000 vehicles per day, down from 2,100 in Q2 2024.",
+        "why_it_matters": "This is negative because decreased traffic may lead to reduced customer visits, giving the landlord less ability to justify high rent, while you may leverage this decline to negotiate lower rent.",
+        "baseline_pct": 100,
+        "current_trend_pct": 70,
+        "source_url": "https://co.becker.mn.us/ucfiles/parks/news/Appendix%20Wannigan%20Park%20Public%20Review%20Draft%2011-20-20.pdf"
+      },
+      {
+        "title": "Current Rent Averages",
+        "impact": "negative",
+        "confidence_score": 80,
+        "source": "Lee & Associates Market",
+        "insight": "Rent averages in the Lake Louise area have increased by 5%, making your current rent of $42/sf appear above market.",
+        "data_evidence": "Current average rent in the Lake Louise area is $40/sf as of Q2 2025.",
+        "why_it_matters": "This is negative for you since rising rent averages strengthen the landlord's position, making it harder to negotiate a decrease in your current rate.",
+        "baseline_pct": 90,
+        "current_trend_pct": 80,
+        "source_url": "https://amimagazine.global/Meeting-Event-Venues/Field-BC/Convention-Hotel/Truffle-Pigs-Lodge-p58069686"
+      },
+      {
+        "title": "Rent Forecast Insights",
+        "impact": "negative",
+        "confidence_score": 75,
+        "source": "Lee & Associates Market",
+        "insight": "Forecasts predict a continued upward trend in rental rates by 3% over the next year due to low vacancy rates.",
+        "data_evidence": "Forecast analysis shows an anticipated average asking rent of $43.50/sf by Q2 2026.",
+        "why_it_matters": "This is negative for you because rising forecasted rents could further justify the landlord's current asking price, limiting your negotiation leverage.",
+        "baseline_pct": 75,
+        "current_trend_pct": 80,
+        "source_url": "https://www.nccourts.gov/assets/documents/publications/NC-unclaimed-property-2018-19-Mecklenburg.pdf?3yWDLi22G2COYAsM2xgalN.6.Y2u3Lyr"
+      },
+      {
+        "title": "Infrastructure Developments",
+        "impact": "positive",
+        "confidence_score": 65,
+        "source": "Major Projects Alberta",
+        "insight": "Upcoming infrastructure projects, including the Fairmont Lake Louise Thermal Wellness Facility, are expected to enhance local amenities and potentially increase traffic.",
+        "data_evidence": "Construction is set to begin in 2025 for a new thermal wellness facility in Lake Louise, promising to attract more visitors.",
+        "why_it_matters": "This is positive for you as tenant because improved local amenities can enhance foot traffic and desirability, potentially increasing negotiation leverage for future rent discussions.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://majorprojects.alberta.ca/details/Fairmont-Lake-Louise-Thermal-Wellness-Facility-BASIN-Glacial-Waters/10734"
+      },
+      {
+        "title": "Tenant / landlord risk",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "No current data is available regarding risks associated with tenant and landlord relationships for Fairmount Lake Louise.",
+        "data_evidence": "No data",
+        "why_it_matters": "Understanding tenant-landlord risk is essential for negotiating lease terms. If data were available, it could inform you about the stability and reliability of the landlord, potential disputes, or financial pressures that could impact negotiations.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.chateau-lake-louise.com/offers/"
+      },
+      {
+        "title": "Upcoming building maintenance",
+        "impact": "positive",
+        "confidence_score": 75,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "A new thermal wellness facility, 'BASIN Glacial Waters,' is set to open on September 15, 2025, indicating ongoing investment in property enhancements.",
+        "data_evidence": "State-of-the-art eco-friendly thermal wellness facility set to launch; $130MM invested in property renovations including guest rooms and spa redesign.",
+        "why_it_matters": "This is positive for you as a tenant because the investment in property improvements could enhance the overall experience and value of your lease. You can question how these improvements may justify the current rent.",
+        "baseline_pct": null,
+        "current_trend_pct": 75,
+        "source_url": "https://finance.yahoo.com/news/basin-glacial-waters-fairmont-chateau-150000079.html"
+      },
+      {
+        "title": "Market activity & trends",
+        "impact": "negative",
+        "confidence_score": 60,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "The Fairmont Chateau Lake Louise has seen revenue growth of about 22.1%, showcasing strong demand that may support higher rents.",
+        "data_evidence": "Revenue growth of about 22.1% during the last quarter indicates increasing demand.",
+        "why_it_matters": "This is negative for you because strong demand trends support the landlord's position to maintain or increase rent levels, limiting your negotiating leverage for a rent reduction.",
+        "baseline_pct": null,
+        "current_trend_pct": 75,
+        "source_url": "https://www.theglobeandmail.com/report-on-business/fairmont-hotels-profit-climbs/article1122066/"
+      },
+      {
+        "title": "Sales comps",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "The Fairmont Chateau Lake Louise's competitive positioning and upgrades create a desirable tenant mix which could influence rental expectations.",
+        "data_evidence": "Strategically positioned within a UNESCO World Heritage Site; attracts high-end customers with minimal local competition.",
+        "why_it_matters": "This is negative for you because a limited competitive landscape and upgrades make it hard to justify lower rent. The landlord can leverage this to justify the current base rent as competitive within the market.",
+        "baseline_pct": null,
+        "current_trend_pct": 80,
+        "source_url": "https://publications.oxfordproperties.com/fairmont-by-oxford/the-fairmont-chateau-lake-louise1"
+      },
+      {
+        "title": "Portfolio data",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "No specific portfolio data has been found pertaining to Fairmont Chateau Lake Louise.",
+        "data_evidence": "No data",
+        "why_it_matters": "Insights into portfolio data could provide context on how this property compares to other holdings, which would be useful for negotiating leverage if such data showed advantageous terms elsewhere.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.forbes.com/sites/elizabethbrownfield/2024/11/18/this-iconic-banff-resort-offers-alpine-luxury-and-year-round-adventure/"
+      },
+      {
+        "title": "Occupancy Rate Trends",
+        "impact": "positive",
+        "confidence_score": 80,
+        "source": "Hotelier Magazine",
+        "insight": "The hotel occupancy rate in Canada is predicted to be 66% for 2023, representing a recovery in tourism and potential increased foot traffic for retail.",
+        "data_evidence": "Market occupancy projected to increase to 77% for 2023, up 11 points from 2022.",
+        "why_it_matters": "This is positive for you as tenant because increasing occupancy suggests more visitors, leading to higher foot traffic and potential sales; you can argue for a rent adjustment based on improved market conditions.",
+        "baseline_pct": 55,
+        "current_trend_pct": 77,
+        "source_url": "https://www.hoteliermagazine.com/canadian-hotel-occupancy-predicted-to-reach-66-per-cent-for-2023/"
+      },
+      {
+        "title": "Market Rental Rates",
+        "impact": "negative",
+        "confidence_score": 75,
+        "source": "Canadian Real Estate",
+        "insight": "Asking rental rates for retail spaces have stabilized despite a soft economic backdrop, hinting at strong demand despite current pricing.",
+        "data_evidence": "Overall demand for physical retail space remains steady even amidst economic concerns.",
+        "why_it_matters": "This is negative for you because the landlord may use the stabilization of rental rates to justify the current rent, meaning you have less grounds to negotiate a reduction.",
+        "baseline_pct": 28,
+        "current_trend_pct": 32,
+        "source_url": "https://www.jll.com/en-us/guides/canadian-retail-leasing-stays-positive-despite-a-softer-economy"
+      },
+      {
+        "title": "NOI Insights",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "S&P Global",
+        "insight": "Net Operating Income (NOI) trends show improvements, making properties like Fairmount Lake Louise more valuable and potentially justifying higher rents.",
+        "data_evidence": "NOI's ability to generate returns is critical; properties with increasing NOI are stronger investment opportunities.",
+        "why_it_matters": "This is negative for you as tenant because higher NOI helps the landlord justify the asking rent, giving them leverage in negotiations.",
+        "baseline_pct": 1,
+        "current_trend_pct": 10,
+        "source_url": "https://www.spglobal.com/ratings/en/regulatory/article/-/view/type/HTML/id/2826238"
+      },
+      {
+        "title": "Rental Market Resilience",
+        "impact": "neutral",
+        "confidence_score": 65,
+        "source": "Banff Lake Louise Tourism",
+        "insight": "The retail rental market in Lake Louise remains resilient with expected growth in tourism and visitation, although competitive conditions may affect pricing.",
+        "data_evidence": "Retail demand in Lake Louise is projected to hold steady amid market conditions, leading to competitive pricing.",
+        "why_it_matters": "This is neutral for you as it indicates that while there is stability in the rental market, conditions may not provide significant leverage for negotiating rent downward, leaving you with limited options.",
+        "baseline_pct": 52,
+        "current_trend_pct": 55,
+        "source_url": "https://plansandreports.banfflakelouise.com/2023annualreport"
+      },
+      {
+        "title": "Construction Impact on Market",
+        "impact": "positive",
+        "confidence_score": 60,
+        "source": "Real Estate Insights",
+        "insight": "Upcoming infrastructure developments around Lake Louise are expected to increase property values and foot traffic, benefiting retail tenants.",
+        "data_evidence": "New developments planned for the area projected to enhance local tourism experience.",
+        "why_it_matters": "This is positive for you as tenant because you can leverage upcoming developments to question the current rent and argue for a possible reduction, especially when tenants in newly developed areas may benefit from lower entrance costs.",
+        "baseline_pct": 40,
+        "current_trend_pct": 60,
+        "source_url": "https://www.rmoutlook.com/lake-louise/lake-louise-field-community-plans-under-review-9100090"
+      }
+    ]
   }
 }

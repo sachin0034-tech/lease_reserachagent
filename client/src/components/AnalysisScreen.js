@@ -131,6 +131,9 @@ export default function AnalysisScreen() {
               const summary = streamRef.current.dashboardSummary;
               const allCards = streamRef.current.cards;
               setTimeout(() => {
+                try {
+                  if (typeof window !== 'undefined' && sessionId) window.localStorage.setItem('lg_analysis_session_id', sessionId);
+                } catch (_) {}
                 navigate('/dashboard', { state: { dashboardSummary: summary, cards: allCards, property: summary?.property, sessionId } });
               }, 5000);
             } else if (event.type === 'error') {
@@ -157,6 +160,9 @@ export default function AnalysisScreen() {
             setStatus('done');
             addStep('success', 'Taking you to the dashboard…');
             setTimeout(() => {
+              try {
+                if (typeof window !== 'undefined' && sessionId) window.localStorage.setItem('lg_analysis_session_id', sessionId);
+              } catch (_) {}
               navigate('/dashboard', { state: { dashboardSummary: streamRef.current.dashboardSummary, cards: streamRef.current.cards, property: streamRef.current.dashboardSummary?.property, sessionId } });
             }, 5000);
           }

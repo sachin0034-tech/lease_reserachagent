@@ -4,12 +4,6 @@ import logging
 import uuid
 from pathlib import Path
 
-try:
-    import fcntl
-    HAS_FCNTL = True
-except ImportError:
-    HAS_FCNTL = False  # Windows doesn't have fcntl
-
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
@@ -37,52 +31,20 @@ def _load_sessions() -> None:
     if not _SESSIONS_FILE.exists():
         return
     try:
-        # Use file locking when reading to avoid reading while another worker is writing
-        with open(_SESSIONS_FILE, "r", encoding="utf-8") as f:
-            if HAS_FCNTL:
-                try:
-                    fcntl.flock(f.fileno(), fcntl.LOCK_SH)  # Shared lock for reading
-                    raw = f.read()
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Release lock
-                except (IOError, OSError):
-                    # File locking failed, fall back to regular read
-                    raw = f.read()
-            else:
-                raw = f.read()
+        raw = _SESSIONS_FILE.read_text(encoding="utf-8")
         data = json.loads(raw)
         if isinstance(data, dict):
-            # Replace (not update) to ensure we get the latest from disk
-            _sessions.clear()
             _sessions.update(data)
             logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), _SESSIONS_FILE)
     except Exception as e:
         logger.warning("[sessions] Could not load sessions from %s: %s", _SESSIONS_FILE, e)
 
 
-def _get_session(session_id: str) -> dict | None:
-    """Get session, reloading from disk first to ensure consistency across workers."""
-    _load_sessions()
-    return _sessions.get(session_id)
-
-
 def _save_sessions() -> None:
-    """Persist sessions to disk with file locking to prevent race conditions."""
+    """Persist sessions to disk."""
     try:
         _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        # Use file locking to prevent corruption when multiple workers write simultaneously
-        with open(_SESSIONS_FILE, "w", encoding="utf-8") as f:
-            if HAS_FCNTL:
-                try:
-                    fcntl.flock(f.fileno(), fcntl.LOCK_EX)  # Exclusive lock
-                    json.dump(_sessions, f, indent=2)
-                    fcntl.flock(f.fileno(), fcntl.LOCK_UN)  # Release lock
-                except (IOError, OSError):
-                    # File locking failed, fall back to regular write
-                    f.seek(0)
-                    f.truncate()
-                    json.dump(_sessions, f, indent=2)
-            else:
-                json.dump(_sessions, f, indent=2)
+        _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
     except Exception as e:
         logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
 
@@ -185,7 +147,7 @@ async def analyze_start(
     current_base_rent: str = Form(...),
     document_text: str | None = Form(default=None),
     files: list[UploadFile] = File(default=[]),
-    llm_provider: str = Form(default="anthropic"),
+    llm_provider: str = Form(default="openai"),
 ):
     """
     Step 1: Submit form + either document_text (paste) or files. Backend uses text or extracts
@@ -193,9 +155,9 @@ async def analyze_start(
     """
     global _sessions
     session_id = str(uuid.uuid4())
-    provider_normalized = (llm_provider or "anthropic").strip().lower()
+    provider_normalized = (llm_provider or "openai").strip().lower()
     if provider_normalized not in {"openai", "anthropic"}:
-        provider_normalized = "anthropic"
+        provider_normalized = "openai"
     logger.info("[analyze/start] New session_id=%s role=%s property=%s", session_id, analyze_as, property_name)
 
     document_context = None
@@ -235,7 +197,7 @@ async def analyze_start(
 
 async def _stream_analysis(session_id: str):
     """Generator: yield ndjson lines (progress + cards_batch + dashboard + done)."""
-    session = _get_session(session_id)
+    session = _sessions.get(session_id)
     if not session:
         yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
         return
@@ -248,7 +210,7 @@ async def _stream_analysis(session_id: str):
         "[analyze/stream] Starting stream for session_id=%s total_topics=%s llm_provider=%s",
         session_id,
         total_topics,
-        ctx.get("llm_provider", "anthropic"),
+        ctx.get("llm_provider", "openai"),
     )
 
     for batch_start in range(0, total_topics, BATCH_SIZE):
@@ -268,7 +230,7 @@ async def _stream_analysis(session_id: str):
             document_context=ctx.get("document_context"),
             card_topics_batch=batch_topics,
             batch_index=batch_index,
-            llm_provider=ctx.get("llm_provider", "anthropic"),
+            llm_provider=ctx.get("llm_provider", "openai"),
         )
 
         # Stream all progress messages in real-time
@@ -294,7 +256,7 @@ async def _stream_analysis(session_id: str):
         current_base_rent=ctx["current_base_rent"],
         document_context=ctx.get("document_context"),
         cards=all_cards,
-        llm_provider=ctx.get("llm_provider", "anthropic"),
+        llm_provider=ctx.get("llm_provider", "openai"),
     )
     session["dashboard_summary"] = dashboard_data
     session["cards"] = all_cards
@@ -330,7 +292,7 @@ async def analyze_stream(session_id: str):
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
     """Return stored dashboard summary + property + cards for the final dashboard page."""
-    session = _get_session(session_id)
+    session = _sessions.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
@@ -357,8 +319,7 @@ def analyze_chat(body: ChatRequest):
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
     Returns a concise, to-the-point reply from the configured LLM provider.
     """
-    # Reload sessions from disk to ensure we see sessions created by other workers
-    session = _get_session(body.session_id)
+    session = _sessions.get(body.session_id)
     if not session:
         # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
         return {
@@ -373,14 +334,14 @@ def analyze_chat(body: ChatRequest):
     if body.llm_provider:
         provider_normalized = body.llm_provider.strip().lower()
         if provider_normalized not in {"openai", "anthropic"}:
-            provider_normalized = "anthropic"
+            provider_normalized = "openai"
         session["llm_provider"] = provider_normalized
         _save_sessions()
     logger.info(
         "[analyze/chat] session_id=%s message_len=%s llm_provider=%s",
         body.session_id,
         len(message),
-        session.get("llm_provider", "anthropic"),
+        session.get("llm_provider", "openai"),
     )
     reply = answer_chat(session, message)
     return {"reply": reply}

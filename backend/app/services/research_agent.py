@@ -133,6 +133,12 @@ async def _claude_query_async(
     )
     return combined
 
+    async def _runner() -> str:
+        return await _claude_query_async(
+            prompt=prompt,
+            system_prompt=system_prompt,
+            output_schema=output_schema,
+        )
 
 def _claude_query_blocking(
     *,
@@ -144,12 +150,6 @@ def _claude_query_blocking(
     Synchronous wrapper around Claude async query for use in FastAPI threadpool / asyncio.to_thread.
     """
 
-    async def _runner() -> str:
-        return await _claude_query_async(
-            prompt=prompt,
-            system_prompt=system_prompt,
-            output_schema=output_schema,
-        )
 
     # These functions are only called from worker threads (no running event loop),
     # so asyncio.run is safe.

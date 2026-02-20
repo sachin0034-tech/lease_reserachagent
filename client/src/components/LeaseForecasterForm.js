@@ -60,8 +60,8 @@ const ROLES = [
 export default function LeaseForecasterForm() {
   const navigate = useNavigate();
   const [analyzeAs, setAnalyzeAs] = useState('tenant');
-  const [propertyName, setPropertyName] = useState('Westfield Centre');
-  const [address, setAddress] = useState('1200 Market Street, San Francisco, CA');
+  const [propertyName, setPropertyName] = useState('Fairmount Lake Louise');
+  const [address, setAddress] = useState('111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada');
   const [leasableArea, setLeasableArea] = useState('2500');
   const [currentBaseRent, setCurrentBaseRent] = useState('42.00');
   const [inputMode, setInputMode] = useState('file'); // 'file' | 'text'
@@ -109,14 +109,14 @@ export default function LeaseForecasterForm() {
       formData.append('address', address);
       formData.append('leasable_area', leasableArea);
       formData.append('current_base_rent', currentBaseRent);
-      let llmProvider = 'anthropic';
+      let llmProvider = 'openai';
       try {
         if (typeof window !== 'undefined') {
           const stored = window.localStorage.getItem('lg_llm_provider');
           if (stored === 'openai' || stored === 'anthropic') llmProvider = stored;
         }
       } catch {
-        // ignore storage errors, default stays anthropic
+        // ignore storage errors, default stays openai
       }
       formData.append('llm_provider', llmProvider);
       if (inputMode === 'text' && documentText.trim()) {
