@@ -291,11 +291,19 @@ async def analyze_stream(session_id: str):
 
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
-    """Return stored dashboard summary + property + cards for the final dashboard page."""
+    """Return stored dashboard summary + property + cards for the final dashboard page.
+    When session is not found (e.g. created on another server), returns 200 with session_found=False
+    so the frontend can show a friendly message instead of a generic error."""
     session = _sessions.get(session_id)
     if not session:
-        raise HTTPException(status_code=404, detail="Session not found")
+        return {
+            "session_found": False,
+            "property": {},
+            "dashboard_summary": None,
+            "cards": [],
+        }
     return {
+        "session_found": True,
         "property": {
             "name": session["property_name"],
             "address": session["address"],

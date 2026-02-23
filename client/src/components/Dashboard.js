@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiOutlineBanknotes,
   HiOutlineChartBar,
@@ -486,6 +486,7 @@ const SESSION_STORAGE_KEY = 'lg_analysis_session_id';
 
 export default function Dashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state || {};
   // Prefer state (from navigation); fall back to localStorage so chat works after refresh or return later
   const sessionIdFromState = state.sessionId || null;
@@ -519,7 +520,12 @@ export default function Dashboard() {
     (async () => {
       try {
         const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
-        if (!res.ok || cancelled) return;
+        if (cancelled) return;
+        if (res.status === 404) {
+          setRestoredData({ session_found: false, property: {}, dashboard_summary: null, cards: [] });
+          return;
+        }
+        if (!res.ok) return;
         const data = await res.json();
         if (!cancelled) setRestoredData(data);
       } catch (_) {}
@@ -531,6 +537,7 @@ export default function Dashboard() {
   const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
   const cards = allCards.filter(hasCardData);
   const property = state.property || dashboardSummary?.property || restoredProperty || {};
+  const sessionNotFoundOnServer = restoredData && restoredData.session_found === false;
 
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -836,6 +843,34 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
+        {sessionNotFoundOnServer && (
+        <section className="dashboard-insights dashboard-insights--empty">
+          <div className="dashboard-insights__head">
+            <h2 className="dashboard-insights__title">
+              <span className="dashboard-insights__title-icon">
+                <HiOutlineSparkles size={20} />
+              </span>
+              Validation Insights
+            </h2>
+          </div>
+          <div className="dashboard-empty-state">
+            <p className="dashboard-empty-state__text">
+              This session was created on a different server. Insights are stored per server, so they don’t appear here.
+            </p>
+            <p className="dashboard-empty-state__hint">
+              Run a new analysis using the form above to see your dashboard and insight cards on this server.
+            </p>
+            <button
+              type="button"
+              className="dashboard-btn dashboard-btn--primary"
+              onClick={() => navigate('/')}
+            >
+              Start new analysis
+            </button>
+          </div>
+        </section>
+        )}
 
         {cards.length > 0 && (
         <section className={`dashboard-insights ${insightsExpanded ? 'dashboard-insights--expanded' : ''}`}>
