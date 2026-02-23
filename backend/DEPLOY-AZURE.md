@@ -299,6 +299,7 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```bash
 # Still in backend/ directory with venv activated
 gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:8000
+   gunicorn -w 4 -k uvicorn.workers.UvicornWorker --chdir backend app.main:app
 ```
 
 This runs your backend on **port 8000**. Keep this terminal open, or use the next step to run it as a service.

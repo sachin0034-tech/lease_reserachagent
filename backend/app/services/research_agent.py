@@ -479,7 +479,7 @@ async def run_card_batch_streaming(
             search_results=None,
         )
         logger.debug("[research_agent] (OpenAI) user_message length=%s", len(user_message))
-        progress_messages.append((None, "Searching the web for sources..."))
+        progress_messages.append((None, "Doing web search..."))
 
         client = OpenAI(api_key=OPENAI_API_KEY)
         content, all_urls = await asyncio.to_thread(
@@ -524,7 +524,7 @@ async def run_card_batch_streaming(
         queries_list = queries_data.get("queries") or []
         if len(queries_list) < len(card_topics_batch):
             queries_list.extend([f"{address} {property_name} retail lease market data"] * (len(card_topics_batch) - len(queries_list)))
-        progress_messages.append((None, "Searching the web for sources..."))
+        progress_messages.append((None, "Doing web search..."))
         seen_anthropic: set[str] = set()
         for q in queries_list[: len(card_topics_batch)]:
             query_str = (q or "").strip() or f"{address} retail lease"

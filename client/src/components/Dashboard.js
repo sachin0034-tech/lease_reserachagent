@@ -284,7 +284,6 @@ function SettingsModal({ open, onClose, onSave }) {
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('Retail / Apparel');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
-  const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
   const [documents, setDocuments] = useState([]);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -299,10 +298,6 @@ function SettingsModal({ open, onClose, onSave }) {
   }, [categoryDropdownOpen]);
 
   if (!open) return null;
-
-  const toggleIntegration = (key) => {
-    setIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
 
   const handleAddDocument = () => {
     fileInputRef.current?.click();
@@ -422,51 +417,6 @@ function SettingsModal({ open, onClose, onSave }) {
             <HiOutlinePlus size={18} />
             Add Document
           </button>
-        </section>
-
-        <section className="dashboard-settings-modal__section">
-          <h3 className="dashboard-settings-modal__section-title">Integrations</h3>
-          <div className="dashboard-settings-modal__integrations">
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--costar">C</div>
-              <span className="dashboard-settings-modal__integration-name">CoStar</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.costar}
-                className={`dashboard-settings-modal__toggle ${integrations.costar ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('costar')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--yardi">Y</div>
-              <span className="dashboard-settings-modal__integration-name">Yardi</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.yardi}
-                className={`dashboard-settings-modal__toggle ${integrations.yardi ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('yardi')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--reonomy">R</div>
-              <span className="dashboard-settings-modal__integration-name">Reonomy</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.reonomy}
-                className={`dashboard-settings-modal__toggle ${integrations.reonomy ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('reonomy')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-          </div>
         </section>
 
         <div className="dashboard-settings-modal__footer">
