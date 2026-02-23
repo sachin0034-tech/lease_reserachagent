@@ -77,7 +77,8 @@ function getIconForTitle(title) {
 }
 
 const NO_DATA_PLACEHOLDERS = /^(no data|n\/a|n\.a\.?|not available|enable api key|—|none|no evidence)$/i;
-const NO_DATA_PHRASES = /no (current )?data found|no data|insufficient data/i;
+/** Short placeholder-only evidence (exact or very short) - hide these; longer text with real insight is shown */
+const SHORT_NO_DATA = /^(no (current )?data found|no data|insufficient data(\s+for\s+comparison)?\.?)$/i;
 
 function dedupeCardsByTitle(cardList) {
   if (!Array.isArray(cardList) || cardList.length === 0) return cardList;
@@ -96,9 +97,7 @@ function hasCardData(card) {
   if (!title) return false;
   const evidence = (card.data_evidence || card.insight || '').trim();
   if (!evidence || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
-  if (NO_DATA_PHRASES.test(evidence)) return false;
-  const confidence = card.confidence_score;
-  if (typeof confidence === 'number' && confidence <= 0) return false;
+  if (evidence.length <= 60 && SHORT_NO_DATA.test(evidence)) return false;
   return true;
 }
 

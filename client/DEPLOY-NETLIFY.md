@@ -115,6 +115,32 @@ Your frontend is live at that URL.
 | Blank page or 404 on refresh | `netlify.toml` should have the SPA redirect (`/*` → `/index.html`). Redeploy after adding or fixing it. |
 | “Failed to fetch” or network errors | Confirm **REACT_APP_API_BASE** is set and correct. Open DevTools → Network and check the request URL. |
 | CORS errors | On the backend, add your Netlify URL to CORS (e.g. `https://your-site.netlify.app`). Redeploy the backend if needed. |
+| Works locally but deployed shows “no data” / “Insufficient data” | See **Deployed vs local** below. |
+
+---
+
+## Deployed vs local: no data on deploy
+
+If the dashboard works locally but on **leaseagent.netlify.app** (or your deployed URL) you see “no data”, “Insufficient data”, or empty cards:
+
+1. **Frontend → backend URL**
+   - In Netlify: **Site configuration** → **Environment variables**.
+   - Ensure **REACT_APP_API_BASE** is set to your **deployed** backend URL (e.g. `https://your-backend.onrender.com` or your Azure/Railway URL), **no trailing slash**.
+   - If it’s missing or still `http://localhost:8000`, the browser will call localhost from the user’s machine and fail. **Redeploy** after changing.
+
+2. **Backend env vars**
+   - Wherever the backend runs (Render, Azure, Railway, etc.), set **OPENAI_API_KEY**, **TAVILY_API_KEY**, and **CORS_ALLOW_ORIGINS** (include `https://leaseagent.netlify.app` or your Netlify URL). Without keys, the LLM and search return “no data”.
+
+3. **CORS**
+   - Backend **CORS_ALLOW_ORIGINS** must include your Netlify origin (e.g. `https://leaseagent.netlify.app`). Otherwise the browser may block responses and the UI will show empty/no data.
+
+4. **Session persistence**
+   - The backend saves sessions to `backend/data/sessions.json`. On **serverless** (e.g. Vercel) the filesystem is often read-only or ephemeral, so sessions don’t persist and the dashboard can’t load saved analysis. Use a **long‑running** backend (Render, Railway, Azure App Service or VM) so the file is writable and sessions survive.
+
+5. **Redeploy and cache**
+   - After fixing env vars, **trigger a new deploy** on Netlify (and on the backend if needed). If needed, use **Clear cache and deploy** so the build uses the latest **REACT_APP_API_BASE**.
+
+**Quick check:** On the deployed site, open DevTools → **Network**. Run an analysis and open the dashboard. Confirm requests go to your **deployed backend URL** (not localhost) and that `/api/analyze/stream` and `/api/analyze/dashboard` return 200 with JSON (not 404 or CORS errors).
 
 ---
 

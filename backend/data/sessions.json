@@ -2934,5 +2934,180 @@
         "source_url": null
       }
     ]
+  },
+  "b74e1042-977c-451f-aaca-ee304ec980c6": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai",
+    "dashboard_summary": {
+      "fair_market_rent": 40.0,
+      "confidence_score": 60,
+      "vs_current_pct": -4.76,
+      "recommendations": {
+        "ideal_term": "5 Years",
+        "ideal_term_reasoning": "A 5-year term is suggested due to the stable demand for retail space as evidenced by market activity and trends, which also provides security for both the tenant and landlord amidst various uncertainties.",
+        "negotiation_leverage": "Moderate (traffic counts data is lacking, but strong tourism offers some leverage)",
+        "negotiation_leverage_reasoning": "The presence of over 4 million annual visitors to Banff National Park indicates a robust potential customer base, but insufficient data on traffic counts limits direct negotiation strength.",
+        "renewals": "Cap at 3% YoY",
+        "renewals_reasoning": "Given the variability in rent prices in the area with some below current asking prices and the general market demand trends, a cap of 3% on renewal escalations would provide reasonable growth expectations without undue burden on the tenant."
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 40.0,
+        "comparison_pct": 5.0,
+        "comparison_text": "Above portfolio average by 5%"
+      },
+      "recommendations_source": "openai"
+    },
+    "cards": [
+      {
+        "title": "Income shifts",
+        "impact": "neutral",
+        "confidence_score": 75,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "While local income shifts are relevant, current specifics about increases or decreases in income for residents around Lake Louise are not well documented; this suggests a mixed economic environment.",
+        "data_evidence": "No specific data on local income changes available.",
+        "why_it_matters": "This is neutral for you as a tenant because if local income data were available, you could use it to argue for or against rent adjustments based on how residents' purchasing power is behaving. Without clear data, it's difficult to leverage this for negotiation.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.reddit.com/r/Banff/comments/1l7q8gv/fairmont_lake_louise_construction/"
+      },
+      {
+        "title": "Traffic counts",
+        "impact": "negative",
+        "confidence_score": 60,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "There are indications that the unique location attracts high-end customers, but exact current and future traffic counts are not explicitly available.",
+        "data_evidence": "No specific data on current vs future traffic counts available.",
+        "why_it_matters": "This is negative for you because without strong evidence of increasing traffic to support higher customer flow, it weakens your position to negotiate lower rent; landlords can argue their rates based on existing behavioral patterns.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.chateau-lake-louise.com/our-commitment/sustainability/"
+      },
+      {
+        "title": "Rent averages",
+        "impact": "neutral",
+        "confidence_score": 70,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "While the Fairmont Chateau Lake Louise charges premium rates, detailed average rent prices for comparable properties are not specified.",
+        "data_evidence": "No detailed historical rent price data available.",
+        "why_it_matters": "This is neutral for you because if comparable properties' rent data were detailed, you could assess whether your rent is in line with the market, but without it, it's hard to make a case for a reduction or adjustment.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://careers.accor.com/pl/pl/job/retail-sales-associate-seasonal-fairmont-chateau-lake-louise-in-fairmont-stores-lake-louise-canada-jid-80931"
+      },
+      {
+        "title": "Rent forecast",
+        "impact": "negative",
+        "confidence_score": 50,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "Forecasts suggest that with no new commercial developments in the area, demand may maintain its current pricing.",
+        "data_evidence": "No specific rent increase or decrease forecast data available.",
+        "why_it_matters": "This is negative for you because if the rent is forecasted to remain steady or increase, the landlord may use this to defend the current rent; you would have less leverage in negotiations.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://majorprojects.alberta.ca/details/Fairmont-Lake-Louise-Thermal-Wellness-Facility-BASIN-Glacial-Waters/10734"
+      },
+      {
+        "title": "Nearby infrastructure developments",
+        "impact": "neutral",
+        "confidence_score": 65,
+        "source": "Fairmont Lake Louise Thermal",
+        "insight": "While there are ongoing projects like the Thermal Wellness Facility that could enhance local appeal, their impact on rents remains to be seen.",
+        "data_evidence": "Ongoing development of new amenities but no clear impact metrics available yet.",
+        "why_it_matters": "This is neutral for you because if these developments positively affect local desirability and footfall, they could justify higher rents; however, until their impact is realized, it remains uncertain how they will affect your negotiation with the landlord.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.businesstravelnews.com/Hotels/Lake-Louise-AB/Fairmont-Chateau-Lake-Louise-p51040023"
+      },
+      {
+        "title": "Tenant / Landlord Risk",
+        "impact": "neutral",
+        "confidence_score": 40,
+        "source": "Commercial Real Estate Canada",
+        "insight": "The Fairmont Chateau Lake Louise is known for its high-end status but often conducts its operations under strict regulations due to its location within a UNESCO World Heritage Site, which may limit commercial flexibility.",
+        "data_evidence": "The hotel operates under the challenges posed by being situated in a national park, requiring environmental compliance measures.",
+        "why_it_matters": "As a tenant, it's crucial to know how the reduced operational flexibility due to environmental regulations might affect your lease terms and negotiation leverage. For the landlord, this solid reputation and situation may support a stronger asking rent.",
+        "baseline_pct": 60,
+        "current_trend_pct": 40,
+        "source_url": "https://www.jdsupra.com/post/fileServer.aspx?fName=9421f289-94ef-40f5-b426-dd57763be36b.pdf"
+      },
+      {
+        "title": "Upcoming Building Maintenance",
+        "impact": "neutral",
+        "confidence_score": 50,
+        "source": "BASIN Glacial Waters Announcement",
+        "insight": "Construction of a new eco-friendly thermal wellness facility, BASIN Glacial Waters, is in progress at Fairmont Lake Louise, which may affect the tenant's operational environment temporarily.",
+        "data_evidence": "The facility is expected to debut in July 2025, representing significant investment into the property.",
+        "why_it_matters": "For the tenant, knowing about upcoming construction can help in planning for potential disruptions or changes in foot traffic, while the landlord may see this as a long-term value addition to the property.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://majorprojects.alberta.ca/details/Fairmont-Lake-Louise-Thermal-Wellness-Facility-BASIN-Glacial-Waters/10734"
+      },
+      {
+        "title": "Market Activity & Trends",
+        "impact": "positive",
+        "confidence_score": 70,
+        "source": "Banff Retail Hotspot",
+        "insight": "Banff is seeing a transformation into a retail hotspot with increasing demand for retail spaces, especially in connection to the area\u2019s high tourist traffic.",
+        "data_evidence": "Banff National Park attracts over 4 million visitors annually, with many tourists engaging in outdoor activities and shopping in retail areas.",
+        "why_it_matters": "For the tenant, this trend offers leverage for negotiating favorable lease terms as demand for retail space rises. For the landlord, this underlines the strong demand for retail which can support higher rental rates.",
+        "baseline_pct": 50,
+        "current_trend_pct": 80,
+        "source_url": "https://www.cbre.ca/insights/articles/banff-is-transforming-into-a-retail-hotspot"
+      },
+      {
+        "title": "Sales Comps",
+        "impact": "neutral",
+        "confidence_score": 60,
+        "source": "LoopNet Retail Listings",
+        "insight": "Current retail listings in Lake Louise suggest comparable spaces with mixed terms, providing context for understanding market positions.",
+        "data_evidence": "The rental prices in the immediate area show variability based on location and tenant type, with some spaces available below the current asking rent of $42/sf.",
+        "why_it_matters": "This could be leveraged by the tenant to negotiate if comparable properties have lower rent, while for the landlord, understanding these comps helps justify current pricing amidst fluctuating market conditions.",
+        "baseline_pct": 40,
+        "current_trend_pct": 50,
+        "source_url": "https://www.loopnet.com/search/retail-space/lake-louise-ab--canada/for-lease/"
+      },
+      {
+        "title": "Portfolio Data",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "No specific data was found regarding the portfolio status of Fairmont Lake Louise in relation to its surrounding retail environment.",
+        "data_evidence": "No data",
+        "why_it_matters": "Understanding how this lease compares within the broader context of the landlord's portfolio could be significant for negotiation; a strong portfolio could justify higher rents while a weaker one could provide negotiating leverage for lower rents.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.instagram.com/reel/DUWPlLzioQv/"
+      },
+      {
+        "title": "NOI and Revenue Insights",
+        "impact": "neutral",
+        "confidence_score": 70,
+        "source": "Growjo",
+        "insight": "The Fairmont Chateau Lake Louise generates an estimated annual revenue of $145.7 million, indicating strong performance.",
+        "data_evidence": "Estimated annual revenue: $145.7M.",
+        "why_it_matters": "This insight is neutral for you as it shows the landlord's revenue but doesn't provide direct leverage for negotiating rent; it may imply financial stability, but high revenues alone don't support a decrease in your rent negotiations.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://growjo.com/company/Fairmont_Chateau_Lake_Louise"
+      },
+      {
+        "title": "Average Occupancy Rate",
+        "impact": "neutral",
+        "confidence_score": 80,
+        "source": "Banff & Lake Louise",
+        "insight": "The average annual occupancy rate in Lake Louise is about 71.7%, indicating a healthy demand for properties.",
+        "data_evidence": "Average occupancy rate: 71.7%.",
+        "why_it_matters": "This insight is neutral as it indicates a generally strong demand for rental spaces, but it does not provide sufficient leverage to negotiate lower rents; the landlord may consider this occupancy rate as justification for their rental price.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://banfflakelouise.bynder.com/m/61fb468733f03158/original/2018_AnnualReport_BLLT.pdf"
+      }
+    ]
   }
 }
