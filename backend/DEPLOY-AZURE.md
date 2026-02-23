@@ -79,6 +79,8 @@ You don’t need to change code for this guide.
    - **Name**: `ANTHROPIC_API_KEY` – **Value**: your Anthropic key.
    - **Name**: `TAVILY_API_KEY` – **Value**: your Tavily key.
    - **Name**: `CORS_ALLOW_ORIGINS` – **Value**: your frontend URL, e.g. `https://your-app.netlify.app` (no trailing slash).
+   - **Name**: `SESSIONS_FILE` – **Value**: `/home/site/sessions.json`  
+     (Required on Azure so session data is written to a writable path. Without this, sessions may not persist and the dashboard/chat can show "session not found".)
 3. After adding them, click **Save** at the top.
 4. Confirm when Azure asks to **Restart** the app.
 

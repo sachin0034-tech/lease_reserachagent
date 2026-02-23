@@ -56,3 +56,7 @@ _raw_tavily = os.environ.get("TAVILY_API_KEY")
 TAVILY_API_KEY = (_raw_tavily or "").strip().strip("'\"").strip() or None
 if not TAVILY_API_KEY:
     TAVILY_API_KEY = _read_key_from_env_file("TAVILY_API_KEY")
+
+# Sessions persistence: path to JSON file. Set on Azure to a writable path (e.g. /home/site/sessions.json).
+_raw_sessions_file = os.environ.get("SESSIONS_FILE", "").strip().strip("'\"")
+SESSIONS_FILE = Path(_raw_sessions_file) if _raw_sessions_file else (BACKEND_ROOT / "data" / "sessions.json")
