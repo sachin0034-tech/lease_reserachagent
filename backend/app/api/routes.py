@@ -271,7 +271,7 @@ async def _stream_analysis(session_id: str):
         },
     }
     yield json.dumps({"type": "dashboard", "data": payload}) + "\n"
-    yield json.dumps({"type": "done"}) + "\n"
+    yield json.dumps({"type": "done", "cards": all_cards}) + "\n"
     logger.info("[analyze/stream] Stream done for session_id=%s", session_id)
 
 

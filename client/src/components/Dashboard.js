@@ -77,6 +77,7 @@ function getIconForTitle(title) {
 }
 
 const NO_DATA_PLACEHOLDERS = /^(no data|n\/a|n\.a\.?|not available|enable api key|—|none|no evidence)$/i;
+const NO_DATA_PHRASES = /no (current )?data found|no data|insufficient data/i;
 
 function dedupeCardsByTitle(cardList) {
   if (!Array.isArray(cardList) || cardList.length === 0) return cardList;
@@ -93,8 +94,11 @@ function hasCardData(card) {
   if (!card || typeof card !== 'object') return false;
   const title = (card.title || '').trim();
   if (!title) return false;
-  const evidence = (card.data_evidence || '').trim();
-  if (evidence.length === 0 || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
+  const evidence = (card.data_evidence || card.insight || '').trim();
+  if (!evidence || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
+  if (NO_DATA_PHRASES.test(evidence)) return false;
+  const confidence = card.confidence_score;
+  if (typeof confidence === 'number' && confidence <= 0) return false;
   return true;
 }
 
@@ -464,7 +468,10 @@ export default function Dashboard() {
   const restoredProperty = restoredData?.property ?? {};
   useEffect(() => {
     const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-    if (!sessionId || state.dashboardSummary) return;
+    const hasCards = Array.isArray(state.cards) && state.cards.length > 0;
+    const hasSummary = state.dashboardSummary && (state.dashboardSummary.fair_market_rent != null || state.dashboardSummary.property);
+    if (!sessionId) return;
+    if (hasSummary && hasCards) return;
     let cancelled = false;
     (async () => {
       try {
@@ -475,7 +482,7 @@ export default function Dashboard() {
       } catch (_) {}
     })();
     return () => { cancelled = true; };
-  }, [sessionId, state.dashboardSummary]);
+  }, [sessionId, state.dashboardSummary, state.cards]);
 
   const dashboardSummary = state.dashboardSummary || restoredSummary || {};
   const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
