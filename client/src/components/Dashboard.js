@@ -283,12 +283,12 @@ export { InsightCardTile, EvidenceModal, SettingsModal };
 
 const INDUSTRY_OPTIONS = ['Retail / Apparel', 'F&B', 'Office'];
 
-  // Default: Anthropic. Only one provider can be enabled. Stored value applied when modal opens.
+function SettingsModal({ open, onClose, onSave }) {
+  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
   const [openaiEnabled, setOpenaiEnabled] = useState(true);
   const [anthropicEnabled, setAnthropicEnabled] = useState(false);
   const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
   const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
-function SettingsModal({ open, onClose, onSave }) {
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('Retail / Apparel');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
@@ -455,14 +455,18 @@ function SettingsModal({ open, onClose, onSave }) {
   );
 }
 
+const SESSION_STORAGE_KEY = 'lg_session_id';
+
 export default function Dashboard() {
   const location = useLocation();
+  const navigate = useNavigate();
   const state = location.state || {};
   const dashboardSummary = state.dashboardSummary || {};
   const allCards = dedupeCardsByTitle(state.cards || []);
   const cards = allCards.filter(hasCardData);
   const property = state.property || dashboardSummary?.property || {};
   const sessionId = state.sessionId || null;
+  const [sessionNotFoundOnServer, setSessionNotFoundOnServer] = useState(false);
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [saveToastVisible, setSaveToastVisible] = useState(false);
@@ -499,10 +503,7 @@ export default function Dashboard() {
     try {
       if (typeof window !== 'undefined' && !effectiveSessionId) {
         const fromStorage = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        if (fromStorage) {
-          effectiveSessionId = fromStorage;
-          setSessionId(fromStorage);
-        }
+        if (fromStorage) effectiveSessionId = fromStorage;
       }
     } catch (_) {}
     if (!effectiveSessionId) {
@@ -540,7 +541,7 @@ export default function Dashboard() {
         try {
           if (typeof window !== 'undefined') window.localStorage.removeItem(SESSION_STORAGE_KEY);
         } catch (_) {}
-        setSessionId(null);
+        setSessionNotFoundOnServer(true);
       }
       setChatMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     } catch (err) {
