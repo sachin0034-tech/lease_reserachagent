@@ -77,8 +77,6 @@ function getIconForTitle(title) {
 }
 
 const NO_DATA_PLACEHOLDERS = /^(no data|n\/a|n\.a\.?|not available|enable api key|—|none|no evidence)$/i;
-/** Short placeholder-only evidence (exact or very short) - hide these; longer text with real insight is shown */
-const SHORT_NO_DATA = /^(no (current )?data found|no data|insufficient data(\s+for\s+comparison)?\.?)$/i;
 
 function dedupeCardsByTitle(cardList) {
   if (!Array.isArray(cardList) || cardList.length === 0) return cardList;
@@ -95,9 +93,8 @@ function hasCardData(card) {
   if (!card || typeof card !== 'object') return false;
   const title = (card.title || '').trim();
   if (!title) return false;
-  const evidence = (card.data_evidence || card.insight || '').trim();
-  if (!evidence || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
-  if (evidence.length <= 60 && SHORT_NO_DATA.test(evidence)) return false;
+  const evidence = (card.data_evidence || '').trim();
+  if (evidence.length === 0 || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
   return true;
 }
 
@@ -287,6 +284,7 @@ function SettingsModal({ open, onClose, onSave }) {
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('Retail / Apparel');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
   const [documents, setDocuments] = useState([]);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -301,6 +299,10 @@ function SettingsModal({ open, onClose, onSave }) {
   }, [categoryDropdownOpen]);
 
   if (!open) return null;
+
+  const toggleIntegration = (key) => {
+    setIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleAddDocument = () => {
     fileInputRef.current?.click();
@@ -422,6 +424,51 @@ function SettingsModal({ open, onClose, onSave }) {
           </button>
         </section>
 
+        <section className="dashboard-settings-modal__section">
+          <h3 className="dashboard-settings-modal__section-title">Integrations</h3>
+          <div className="dashboard-settings-modal__integrations">
+            <div className="dashboard-settings-modal__integration">
+              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--costar">C</div>
+              <span className="dashboard-settings-modal__integration-name">CoStar</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={integrations.costar}
+                className={`dashboard-settings-modal__toggle ${integrations.costar ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={() => toggleIntegration('costar')}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+            <div className="dashboard-settings-modal__integration">
+              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--yardi">Y</div>
+              <span className="dashboard-settings-modal__integration-name">Yardi</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={integrations.yardi}
+                className={`dashboard-settings-modal__toggle ${integrations.yardi ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={() => toggleIntegration('yardi')}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+            <div className="dashboard-settings-modal__integration">
+              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--reonomy">R</div>
+              <span className="dashboard-settings-modal__integration-name">Reonomy</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={integrations.reonomy}
+                className={`dashboard-settings-modal__toggle ${integrations.reonomy ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={() => toggleIntegration('reonomy')}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+          </div>
+        </section>
+
         <div className="dashboard-settings-modal__footer">
           <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--secondary" onClick={onClose}>
             Cancel
@@ -467,10 +514,7 @@ export default function Dashboard() {
   const restoredProperty = restoredData?.property ?? {};
   useEffect(() => {
     const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-    const hasCards = Array.isArray(state.cards) && state.cards.length > 0;
-    const hasSummary = state.dashboardSummary && (state.dashboardSummary.fair_market_rent != null || state.dashboardSummary.property);
-    if (!sessionId) return;
-    if (hasSummary && hasCards) return;
+    if (!sessionId || state.dashboardSummary) return;
     let cancelled = false;
     (async () => {
       try {
@@ -481,7 +525,7 @@ export default function Dashboard() {
       } catch (_) {}
     })();
     return () => { cancelled = true; };
-  }, [sessionId, state.dashboardSummary, state.cards]);
+  }, [sessionId, state.dashboardSummary]);
 
   const dashboardSummary = state.dashboardSummary || restoredSummary || {};
   const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);

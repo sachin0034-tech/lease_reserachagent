@@ -129,8 +129,6 @@ export default function AnalysisScreen() {
               setStatus('done');
               addStep('success', 'All set. Taking you to the dashboard…');
               const summary = streamRef.current.dashboardSummary;
-              const doneCards = Array.isArray(event.cards) && event.cards.length > 0 ? event.cards : streamRef.current.cards;
-              if (doneCards.length > 0) streamRef.current.cards = doneCards;
               const allCards = streamRef.current.cards;
               setTimeout(() => {
                 try {
@@ -161,8 +159,6 @@ export default function AnalysisScreen() {
           if (event.type === 'done') {
             setStatus('done');
             addStep('success', 'Taking you to the dashboard…');
-            const doneCards = Array.isArray(event.cards) && event.cards.length > 0 ? event.cards : streamRef.current.cards;
-            if (doneCards.length > 0) streamRef.current.cards = doneCards;
             setTimeout(() => {
               try {
                 if (typeof window !== 'undefined' && sessionId) window.localStorage.setItem('lg_analysis_session_id', sessionId);
