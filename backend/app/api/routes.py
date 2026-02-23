@@ -8,7 +8,7 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from app.core.config import BACKEND_ROOT, SESSIONS_FILE
+from app.core.config import BACKEND_ROOT
 from app.schemas.insight_card import CARD_TOPICS
 from app.services.file_extract import extract_text_from_file
 from app.services.openai_summary import summarize_with_openai
@@ -22,30 +22,31 @@ _latest_analyze_payload: dict | None = None
 
 # Session store for streaming analysis: session_id -> context for LLM (persisted to file)
 _sessions: dict[str, dict] = {}
+_SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
 
 
 def _load_sessions() -> None:
     """Load sessions from disk so they survive server restarts."""
     global _sessions
-    if not SESSIONS_FILE.exists():
+    if not _SESSIONS_FILE.exists():
         return
     try:
-        raw = SESSIONS_FILE.read_text(encoding="utf-8")
+        raw = _SESSIONS_FILE.read_text(encoding="utf-8")
         data = json.loads(raw)
         if isinstance(data, dict):
             _sessions.update(data)
-            logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), SESSIONS_FILE)
+            logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), _SESSIONS_FILE)
     except Exception as e:
-        logger.warning("[sessions] Could not load sessions from %s: %s", SESSIONS_FILE, e)
+        logger.warning("[sessions] Could not load sessions from %s: %s", _SESSIONS_FILE, e)
 
 
 def _save_sessions() -> None:
     """Persist sessions to disk."""
     try:
-        SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
+        _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
+        _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
     except Exception as e:
-        logger.warning("[sessions] Could not save sessions to %s: %s", SESSIONS_FILE, e)
+        logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
 
 
 # Load persisted sessions on module load

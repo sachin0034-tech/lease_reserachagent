@@ -4049,5 +4049,32 @@
         "source_url": "https://economicdashboard.alberta.ca/dashboard/accommodation-occupancy-rate/"
       }
     ]
+  },
+  "5cba7080-2cfe-475c-84a6-b6eab3245071": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai"
+  },
+  "2ae719e3-087e-449c-bbfc-4974f0d465be": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai"
+  },
+  "00d8dcc2-9fcc-463a-ad19-0f51a6e76890": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai"
   }
 }

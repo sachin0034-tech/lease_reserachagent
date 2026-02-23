@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   HiOutlineBanknotes,
   HiOutlineChartBar,
@@ -77,6 +77,8 @@ function getIconForTitle(title) {
 }
 
 const NO_DATA_PLACEHOLDERS = /^(no data|n\/a|n\.a\.?|not available|enable api key|—|none|no evidence)$/i;
+/** Short placeholder-only evidence (exact or very short) - hide these; longer text with real insight is shown */
+const SHORT_NO_DATA = /^(no (current )?data found|no data|insufficient data(\s+for\s+comparison)?\.?)$/i;
 
 function dedupeCardsByTitle(cardList) {
   if (!Array.isArray(cardList) || cardList.length === 0) return cardList;
@@ -93,8 +95,9 @@ function hasCardData(card) {
   if (!card || typeof card !== 'object') return false;
   const title = (card.title || '').trim();
   if (!title) return false;
-  const evidence = (card.data_evidence || '').trim();
-  if (evidence.length === 0 || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
+  const evidence = (card.data_evidence || card.insight || '').trim();
+  if (!evidence || NO_DATA_PLACEHOLDERS.test(evidence)) return false;
+  if (evidence.length <= 60 && SHORT_NO_DATA.test(evidence)) return false;
   return true;
 }
 
@@ -280,32 +283,31 @@ export { InsightCardTile, EvidenceModal, SettingsModal };
 
 const INDUSTRY_OPTIONS = ['Retail / Apparel', 'F&B', 'Office'];
 
-function SettingsModal({ open, onClose, onSave }) {
-  const [companyName, setCompanyName] = useState('');
-  const [category, setCategory] = useState('Retail / Apparel');
-  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
-  const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
-  const [documents, setDocuments] = useState([]);
-  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
+  // Default: Anthropic. Only one provider can be enabled. Stored value applied when modal opens.
   const [openaiEnabled, setOpenaiEnabled] = useState(true);
   const [anthropicEnabled, setAnthropicEnabled] = useState(false);
   const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
   const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
+function SettingsModal({ open, onClose, onSave }) {
+  const [companyName, setCompanyName] = useState('');
+  const [category, setCategory] = useState('Retail / Apparel');
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  const [documents, setDocuments] = useState([]);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (!open) return;
     const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lg_llm_provider') : null;
-    if (stored === 'openai') {
+    if (stored === 'anthropic') {
+      setOpenaiEnabled(false);
+      setAnthropicEnabled(true);
+    } else if (stored === 'openai') {
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
     } else {
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
-      try {
-        if (typeof window !== 'undefined') window.localStorage.setItem('lg_llm_provider', 'openai');
-      } catch (_) {}
     }
   }, [open]);
 
@@ -319,30 +321,6 @@ function SettingsModal({ open, onClose, onSave }) {
   }, [categoryDropdownOpen]);
 
   if (!open) return null;
-
-  const toggleIntegration = (key) => {
-    setIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
-  };
-
-  const handleOpenAIToggle = () => {
-    if (!openaiEnabled && anthropicEnabled) {
-      setLlmProviderModalMessage('You can enable only one provider. Disable Anthropic first or keep the current selection.');
-      setLlmProviderModalOpen(true);
-      return;
-    }
-    setOpenaiEnabled(!openaiEnabled);
-    if (!openaiEnabled) setAnthropicEnabled(false);
-  };
-
-  const handleAnthropicToggle = () => {
-    if (!anthropicEnabled && openaiEnabled) {
-      setLlmProviderModalMessage('You can enable only one provider. Disable OpenAI first or keep the current selection.');
-      setLlmProviderModalOpen(true);
-      return;
-    }
-    setAnthropicEnabled(!anthropicEnabled);
-    if (!anthropicEnabled) setOpenaiEnabled(false);
-  };
 
   const handleAddDocument = () => {
     fileInputRef.current?.click();
@@ -361,24 +339,6 @@ function SettingsModal({ open, onClose, onSave }) {
   };
 
   const handleSaveChanges = () => {
-    if (openaiEnabled && anthropicEnabled) {
-      setLlmProviderModalMessage('Please enable only one provider.');
-      setLlmProviderModalOpen(true);
-      return;
-    }
-    if (!openaiEnabled && !anthropicEnabled) {
-      setLlmProviderModalMessage('Please enable at least one provider (OpenAI or Anthropic).');
-      setLlmProviderModalOpen(true);
-      return;
-    }
-    const provider = anthropicEnabled ? 'anthropic' : 'openai';
-    try {
-      if (typeof window !== 'undefined') {
-        window.localStorage.setItem('lg_llm_provider', provider);
-      }
-    } catch {
-      // ignore storage errors
-    }
     onSave?.();
     onClose();
   };
@@ -482,95 +442,6 @@ function SettingsModal({ open, onClose, onSave }) {
           </button>
         </section>
 
-        <section className="dashboard-settings-modal__section">
-          <h3 className="dashboard-settings-modal__section-title">AI Provider</h3>
-          <p className="dashboard-settings-modal__helper">
-            Enable one provider only. Changes apply when you click Save.
-          </p>
-          <div className="dashboard-settings-modal__integrations">
-            <div className="dashboard-settings-modal__integration">
-              <span className="dashboard-settings-modal__integration-name">OpenAI</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={openaiEnabled}
-                className={`dashboard-settings-modal__toggle ${openaiEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={handleOpenAIToggle}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-            <div className="dashboard-settings-modal__integration">
-              <span className="dashboard-settings-modal__integration-name">Anthropic (Claude)</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={anthropicEnabled}
-                className={`dashboard-settings-modal__toggle ${anthropicEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={handleAnthropicToggle}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-          </div>
-        </section>
-
-        {llmProviderModalOpen && (
-          <div className="dashboard-modal-overlay" style={{ zIndex: 10001 }} onClick={() => setLlmProviderModalOpen(false)} role="dialog" aria-modal="true">
-            <div className="dashboard-settings-modal dashboard-settings-modal--alert" onClick={e => e.stopPropagation()}>
-              <p className="dashboard-settings-modal__alert-text">{llmProviderModalMessage}</p>
-              <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary" onClick={() => setLlmProviderModalOpen(false)}>
-                OK
-              </button>
-            </div>
-          </div>
-        )}
-
-        <section className="dashboard-settings-modal__section">
-          <h3 className="dashboard-settings-modal__section-title">Integrations</h3>
-          <div className="dashboard-settings-modal__integrations">
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--costar">C</div>
-              <span className="dashboard-settings-modal__integration-name">CoStar</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.costar}
-                className={`dashboard-settings-modal__toggle ${integrations.costar ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('costar')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--yardi">Y</div>
-              <span className="dashboard-settings-modal__integration-name">Yardi</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.yardi}
-                className={`dashboard-settings-modal__toggle ${integrations.yardi ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('yardi')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-            <div className="dashboard-settings-modal__integration">
-              <div className="dashboard-settings-modal__integration-icon dashboard-settings-modal__integration-icon--reonomy">R</div>
-              <span className="dashboard-settings-modal__integration-name">Reonomy</span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={integrations.reonomy}
-                className={`dashboard-settings-modal__toggle ${integrations.reonomy ? 'dashboard-settings-modal__toggle--on' : ''}`}
-                onClick={() => toggleIntegration('reonomy')}
-              >
-                <span className="dashboard-settings-modal__toggle-thumb" />
-              </button>
-            </div>
-          </div>
-        </section>
-
         <div className="dashboard-settings-modal__footer">
           <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--secondary" onClick={onClose}>
             Cancel
@@ -584,56 +455,14 @@ function SettingsModal({ open, onClose, onSave }) {
   );
 }
 
-const SESSION_STORAGE_KEY = 'lg_analysis_session_id';
-
 export default function Dashboard() {
   const location = useLocation();
   const state = location.state || {};
-  // Prefer state (from navigation); fall back to localStorage so chat works after refresh or return later
-  const sessionIdFromState = state.sessionId || null;
-  const [sessionId, setSessionId] = useState(() => {
-    if (sessionIdFromState) return sessionIdFromState;
-    try {
-      return (typeof window !== 'undefined' && window.localStorage.getItem(SESSION_STORAGE_KEY)) || null;
-    } catch {
-      return null;
-    }
-  });
-  // Sync: when we have state.sessionId, persist it and use it; when state updates with new session, update local state
-  useEffect(() => {
-    if (state.sessionId) {
-      setSessionId(state.sessionId);
-      try {
-        if (typeof window !== 'undefined') window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId);
-      } catch (_) {}
-    }
-  }, [state.sessionId]);
-
-  // Restore dashboard data when we have sessionId (e.g. from localStorage after refresh) but no state
-  const [restoredData, setRestoredData] = useState(null);
-  const restoredSummary = restoredData?.dashboard_summary ?? null;
-  const restoredCards = restoredData?.cards ?? [];
-  const restoredProperty = restoredData?.property ?? {};
-  useEffect(() => {
-    const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-    if (!sessionId || state.dashboardSummary) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
-        if (!res.ok || cancelled) return;
-        const data = await res.json();
-        if (!cancelled) setRestoredData(data);
-      } catch (_) {}
-    })();
-    return () => { cancelled = true; };
-  }, [sessionId, state.dashboardSummary]);
-
-  const dashboardSummary = state.dashboardSummary || restoredSummary || {};
-  const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
+  const dashboardSummary = state.dashboardSummary || {};
+  const allCards = dedupeCardsByTitle(state.cards || []);
   const cards = allCards.filter(hasCardData);
-  const property = state.property || dashboardSummary?.property || restoredProperty || {};
-
+  const property = state.property || dashboardSummary?.property || {};
+  const sessionId = state.sessionId || null;
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [saveToastVisible, setSaveToastVisible] = useState(false);
@@ -665,7 +494,18 @@ export default function Dashboard() {
     if (!trimmed) return;
     setChatMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
     setChatInput('');
-    if (!sessionId) {
+    // Re-sync sessionId from localStorage so template clicks and returns from card view still work
+    let effectiveSessionId = sessionId;
+    try {
+      if (typeof window !== 'undefined' && !effectiveSessionId) {
+        const fromStorage = window.localStorage.getItem(SESSION_STORAGE_KEY);
+        if (fromStorage) {
+          effectiveSessionId = fromStorage;
+          setSessionId(fromStorage);
+        }
+      }
+    } catch (_) {}
+    if (!effectiveSessionId) {
       setChatMessages((prev) => [...prev, { role: 'assistant', text: 'Complete an analysis from the form to chat with full context (property, documents, and insights).' }]);
       return;
     }
@@ -683,7 +523,11 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE}/api/analyze/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: sessionId, message: trimmed, llm_provider: llmProvider }),
+        body: JSON.stringify({
+          session_id: effectiveSessionId,
+          message: trimmed,
+          llm_provider: llmProvider,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -691,6 +535,13 @@ export default function Dashboard() {
         return;
       }
       const reply = data.reply || 'No response.';
+      const isSessionExpired = typeof reply === 'string' && reply.includes('session has expired') && reply.includes('Run a new analysis');
+      if (isSessionExpired) {
+        try {
+          if (typeof window !== 'undefined') window.localStorage.removeItem(SESSION_STORAGE_KEY);
+        } catch (_) {}
+        setSessionId(null);
+      }
       setChatMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     } catch (err) {
       setChatMessages((prev) => [...prev, { role: 'assistant', text: `Error: ${err.message || 'Could not reach the server.'}` }]);
@@ -905,6 +756,34 @@ export default function Dashboard() {
             )}
           </div>
         </section>
+
+        {sessionNotFoundOnServer && (
+        <section className="dashboard-insights dashboard-insights--empty">
+          <div className="dashboard-insights__head">
+            <h2 className="dashboard-insights__title">
+              <span className="dashboard-insights__title-icon">
+                <HiOutlineSparkles size={20} />
+              </span>
+              Validation Insights
+            </h2>
+          </div>
+          <div className="dashboard-empty-state">
+            <p className="dashboard-empty-state__text">
+              This session was created on a different server. Insights are stored per server, so they don’t appear here.
+            </p>
+            <p className="dashboard-empty-state__hint">
+              Run a new analysis using the form above to see your dashboard and insight cards on this server.
+            </p>
+            <button
+              type="button"
+              className="dashboard-btn dashboard-btn--primary"
+              onClick={() => navigate('/')}
+            >
+              Start new analysis
+            </button>
+          </div>
+        </section>
+        )}
 
         {cards.length > 0 && (
         <section className={`dashboard-insights ${insightsExpanded ? 'dashboard-insights--expanded' : ''}`}>
