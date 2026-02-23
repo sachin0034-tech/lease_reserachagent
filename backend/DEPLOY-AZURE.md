@@ -78,7 +78,7 @@ You don’t need to change code for this guide.
    - **Name**: `OPENAI_API_KEY` – **Value**: your OpenAI key.
    - **Name**: `ANTHROPIC_API_KEY` – **Value**: your Anthropic key.
    - **Name**: `TAVILY_API_KEY` – **Value**: your Tavily key.
-   - **Name**: `CORS_ALLOW_ORIGINS` – **Value**: comma-separated origins (no trailing slashes). Include your deployed frontend and, if you run the frontend locally, add `http://localhost:3000`. Example: `https://your-app.netlify.app,http://localhost:3000`.
+   - **Name**: `CORS_ALLOW_ORIGINS` – **Value**: your frontend URL, e.g. `https://your-app.netlify.app` (no trailing slash).
 3. After adding them, click **Save** at the top.
 4. Confirm when Azure asks to **Restart** the app.
 
@@ -139,7 +139,7 @@ Now your frontend will call your backend running on Azure.
 - [ ] `gunicorn` added to `backend/requirements.txt` and pushed.
 - [ ] Web App (Linux, Python) created with a unique name.
 - [ ] GitHub repo connected via **Deployment Center**.
-- [ ] App settings set: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TAVILY_API_KEY`, `CORS_ALLOW_ORIGINS` (e.g. `https://your-app.netlify.app,http://localhost:3000`).
+- [ ] App settings set: `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `TAVILY_API_KEY`, `CORS_ALLOW_ORIGINS`.
 - [ ] Startup Command: `gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app`.
 - [ ] `/health` and `/docs` load from `https://<your-name>.azurewebsites.net`.
 - [ ] Frontend `REACT_APP_API_BASE` points to that URL.
@@ -279,7 +279,7 @@ Add these lines (replace with your actual API keys):
 OPENAI_API_KEY=your-openai-key-here
 ANTHROPIC_API_KEY=your-anthropic-key-here
 TAVILY_API_KEY=your-tavily-key-here
-CORS_ALLOW_ORIGINS=https://your-frontend-url.netlify.app,http://localhost:3000
+CORS_ALLOW_ORIGINS=https://your-frontend-url.netlify.app
 ```
 
 - Press `Ctrl+X`, then `Y`, then `Enter` to save and exit nano.

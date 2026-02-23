@@ -291,19 +291,11 @@ async def analyze_stream(session_id: str):
 
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
-    """Return stored dashboard summary + property + cards for the final dashboard page.
-    When session is not found (e.g. created on another server), returns 200 with session_found=False
-    so the frontend can show a friendly message instead of a generic error."""
+    """Return stored dashboard summary + property + cards for the final dashboard page."""
     session = _sessions.get(session_id)
     if not session:
-        return {
-            "session_found": False,
-            "property": {},
-            "dashboard_summary": None,
-            "cards": [],
-        }
+        raise HTTPException(status_code=404, detail="Session not found")
     return {
-        "session_found": True,
         "property": {
             "name": session["property_name"],
             "address": session["address"],
@@ -353,40 +345,3 @@ def analyze_chat(body: ChatRequest):
     )
     reply = answer_chat(session, message)
     return {"reply": reply}
-
-
-@router.get("/openai/status")
-def openai_status():
-    """
-    Check if OpenAI API key is configured and has usable credits.
-    Returns configured, ok, and if not ok: error_code (e.g. insufficient_quota, invalid_api_key).
-    Does not consume credits (uses models.list).
-    """
-    from app.core.config import OPENAI_API_KEY
-
-    if not OPENAI_API_KEY:
-        return {"configured": False, "ok": False, "error_code": "missing_api_key"}
-
-    try:
-        from openai import OpenAI
-
-        client = OpenAI(api_key=OPENAI_API_KEY)
-        client.models.list()
-        return {"configured": True, "ok": True}
-    except Exception as e:
-        code = None
-        if hasattr(e, "response") and e.response is not None:
-            try:
-                body = e.response.json() if hasattr(e.response, "json") else {}
-                code = (body.get("error") or {}).get("code") if isinstance(body.get("error"), dict) else None
-            except Exception:
-                pass
-        if not code and getattr(e, "body", None) and isinstance(e.body, dict):
-            code = (e.body.get("error") or {}).get("code")
-        code_str = (code or getattr(e, "code", None) or "").lower() if code or getattr(e, "code", None) else ""
-        msg = str(e).lower()
-        if "insufficient_quota" in code_str or "quota" in msg or "exceeded" in msg:
-            return {"configured": True, "ok": False, "error_code": "insufficient_quota", "message": "OpenAI account has no credits or quota exceeded. Check platform.openai.com billing."}
-        if "invalid" in code_str or "auth" in code_str or "invalid_api_key" in code_str or "401" in msg:
-            return {"configured": True, "ok": False, "error_code": "invalid_api_key", "message": "OpenAI API key is invalid or revoked."}
-        return {"configured": True, "ok": False, "error_code": code_str or "unknown", "message": str(e)[:200]}

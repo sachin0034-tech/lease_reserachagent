@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   HiOutlineBanknotes,
   HiOutlineChartBar,
@@ -286,8 +286,30 @@ function SettingsModal({ open, onClose, onSave }) {
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [integrations, setIntegrations] = useState({ costar: true, yardi: false, reonomy: false });
   const [documents, setDocuments] = useState([]);
+  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
+  const [openaiEnabled, setOpenaiEnabled] = useState(true);
+  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
+  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
+  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lg_llm_provider') : null;
+    // App default is OpenAI. Respect explicit 'openai'; treat missing or legacy 'anthropic' as default (OpenAI).
+    if (stored === 'openai') {
+      setOpenaiEnabled(true);
+      setAnthropicEnabled(false);
+    } else {
+      // No stored value, or stored was 'anthropic' (old default) → show and persist OpenAI as default
+      setOpenaiEnabled(true);
+      setAnthropicEnabled(false);
+      try {
+        if (typeof window !== 'undefined') window.localStorage.setItem('lg_llm_provider', 'openai');
+      } catch (_) {}
+    }
+  }, [open]);
 
   useEffect(() => {
     if (!categoryDropdownOpen) return;
@@ -302,6 +324,26 @@ function SettingsModal({ open, onClose, onSave }) {
 
   const toggleIntegration = (key) => {
     setIntegrations((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleOpenAIToggle = () => {
+    if (!openaiEnabled && anthropicEnabled) {
+      setLlmProviderModalMessage('You can enable only one provider. Disable Anthropic first or keep the current selection.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    setOpenaiEnabled(!openaiEnabled);
+    if (!openaiEnabled) setAnthropicEnabled(false);
+  };
+
+  const handleAnthropicToggle = () => {
+    if (!anthropicEnabled && openaiEnabled) {
+      setLlmProviderModalMessage('You can enable only one provider. Disable OpenAI first or keep the current selection.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    setAnthropicEnabled(!anthropicEnabled);
+    if (!anthropicEnabled) setOpenaiEnabled(false);
   };
 
   const handleAddDocument = () => {
@@ -321,6 +363,24 @@ function SettingsModal({ open, onClose, onSave }) {
   };
 
   const handleSaveChanges = () => {
+    if (openaiEnabled && anthropicEnabled) {
+      setLlmProviderModalMessage('Please enable only one provider.');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    if (!openaiEnabled && !anthropicEnabled) {
+      setLlmProviderModalMessage('Please enable at least one provider (OpenAI or Anthropic).');
+      setLlmProviderModalOpen(true);
+      return;
+    }
+    const provider = anthropicEnabled ? 'anthropic' : 'openai';
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lg_llm_provider', provider);
+      }
+    } catch {
+      // ignore storage errors
+    }
     onSave?.();
     onClose();
   };
@@ -425,6 +485,50 @@ function SettingsModal({ open, onClose, onSave }) {
         </section>
 
         <section className="dashboard-settings-modal__section">
+          <h3 className="dashboard-settings-modal__section-title">AI Provider</h3>
+          <p className="dashboard-settings-modal__helper">
+            Enable one provider only. Changes apply when you click Save.
+          </p>
+          <div className="dashboard-settings-modal__integrations">
+            <div className="dashboard-settings-modal__integration">
+              <span className="dashboard-settings-modal__integration-name">OpenAI</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={openaiEnabled}
+                className={`dashboard-settings-modal__toggle ${openaiEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={handleOpenAIToggle}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+            <div className="dashboard-settings-modal__integration">
+              <span className="dashboard-settings-modal__integration-name">Anthropic (Claude)</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={anthropicEnabled}
+                className={`dashboard-settings-modal__toggle ${anthropicEnabled ? 'dashboard-settings-modal__toggle--on' : ''}`}
+                onClick={handleAnthropicToggle}
+              >
+                <span className="dashboard-settings-modal__toggle-thumb" />
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {llmProviderModalOpen && (
+          <div className="dashboard-modal-overlay" style={{ zIndex: 10001 }} onClick={() => setLlmProviderModalOpen(false)} role="dialog" aria-modal="true">
+            <div className="dashboard-settings-modal dashboard-settings-modal--alert" onClick={e => e.stopPropagation()}>
+              <p className="dashboard-settings-modal__alert-text">{llmProviderModalMessage}</p>
+              <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary" onClick={() => setLlmProviderModalOpen(false)}>
+                OK
+              </button>
+            </div>
+          </div>
+        )}
+
+        <section className="dashboard-settings-modal__section">
           <h3 className="dashboard-settings-modal__section-title">Integrations</h3>
           <div className="dashboard-settings-modal__integrations">
             <div className="dashboard-settings-modal__integration">
@@ -486,7 +590,6 @@ const SESSION_STORAGE_KEY = 'lg_analysis_session_id';
 
 export default function Dashboard() {
   const location = useLocation();
-  const navigate = useNavigate();
   const state = location.state || {};
   // Prefer state (from navigation); fall back to localStorage so chat works after refresh or return later
   const sessionIdFromState = state.sessionId || null;
@@ -520,12 +623,7 @@ export default function Dashboard() {
     (async () => {
       try {
         const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
-        if (cancelled) return;
-        if (res.status === 404) {
-          setRestoredData({ session_found: false, property: {}, dashboard_summary: null, cards: [] });
-          return;
-        }
-        if (!res.ok) return;
+        if (!res.ok || cancelled) return;
         const data = await res.json();
         if (!cancelled) setRestoredData(data);
       } catch (_) {}
@@ -537,7 +635,6 @@ export default function Dashboard() {
   const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
   const cards = allCards.filter(hasCardData);
   const property = state.property || dashboardSummary?.property || restoredProperty || {};
-  const sessionNotFoundOnServer = restoredData && restoredData.session_found === false;
 
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
@@ -555,32 +652,15 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState('');
   const [activeChip, setActiveChip] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
-  const chatMessagesEndRef = useRef(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
-
-  // Scroll to bottom when messages or loading state changes so "Thinking…" stays visible
-  useEffect(() => {
-    chatMessagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [chatMessages, chatLoading]);
 
   const sendChatMessage = async (text) => {
     const trimmed = (text || '').trim();
     if (!trimmed) return;
     setChatMessages((prev) => [...prev, { role: 'user', text: trimmed }]);
     setChatInput('');
-    // Re-sync sessionId from localStorage so template clicks (and any interaction) always have a valid session
-    let effectiveSessionId = sessionId;
-    try {
-      if (typeof window !== 'undefined' && !effectiveSessionId) {
-        const fromStorage = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        if (fromStorage) {
-          effectiveSessionId = fromStorage;
-          setSessionId(fromStorage);
-        }
-      }
-    } catch (_) {}
-    if (!effectiveSessionId) {
+    if (!sessionId) {
       setChatMessages((prev) => [...prev, { role: 'assistant', text: 'Complete an analysis from the form to chat with full context (property, documents, and insights).' }]);
       return;
     }
@@ -598,7 +678,7 @@ export default function Dashboard() {
       const res = await fetch(`${API_BASE}/api/analyze/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: effectiveSessionId, message: trimmed, llm_provider: llmProvider }),
+        body: JSON.stringify({ session_id: sessionId, message: trimmed, llm_provider: llmProvider }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -606,14 +686,6 @@ export default function Dashboard() {
         return;
       }
       const reply = data.reply || 'No response.';
-      // If backend says session expired, clear stored session so we don't keep retrying
-      const isSessionExpired = typeof reply === 'string' && reply.includes('session has expired') && reply.includes('Run a new analysis');
-      if (isSessionExpired) {
-        try {
-          if (typeof window !== 'undefined') window.localStorage.removeItem(SESSION_STORAGE_KEY);
-        } catch (_) {}
-        setSessionId(null);
-      }
       setChatMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     } catch (err) {
       setChatMessages((prev) => [...prev, { role: 'assistant', text: `Error: ${err.message || 'Could not reach the server.'}` }]);
@@ -622,26 +694,10 @@ export default function Dashboard() {
     }
   };
 
-  // Template prompts: full prompt sent to the model when user clicks a chip (uses session context on backend)
   const QUICK_PROMPTS = [
-    {
-      id: 'draft',
-      label: 'Draft negotiation email',
-      Icon: HiOutlineEnvelope,
-      prompt: 'Using the property details, market insights, and fair rent from this analysis, draft a short professional email I can send to the landlord to open a rent negotiation. Keep it concise and reference specific data points from the insights.',
-    },
-    {
-      id: 'risk',
-      label: 'Explain risk factors',
-      Icon: HiOutlineInformationCircle,
-      prompt: 'Based on the analysis and insight cards, list the main risk factors for this lease or location. For each risk, briefly explain why it matters and one practical step to mitigate or monitor it.',
-    },
-    {
-      id: 'comps',
-      label: 'Compare with recent comps',
-      Icon: HiOutlineChartBar,
-      prompt: 'Using the data from this analysis, compare this property’s rent and terms with the evidence and comps mentioned in the insights. Summarize how this deal compares to the market and whether the current ask is above, at, or below market.',
-    },
+    { id: 'draft', label: 'Draft negotiation email', Icon: HiOutlineEnvelope },
+    { id: 'risk', label: 'Explain risk factors', Icon: HiOutlineInformationCircle },
+    { id: 'comps', label: 'Compare with recent comps', Icon: HiOutlineChartBar },
   ];
   const INITIAL_INSIGHTS = 6;
   const IMPACT_ORDER = { positive: 0, neutral: 1, negative: 2 };
@@ -844,34 +900,6 @@ export default function Dashboard() {
           </div>
         </section>
 
-        {sessionNotFoundOnServer && (
-        <section className="dashboard-insights dashboard-insights--empty">
-          <div className="dashboard-insights__head">
-            <h2 className="dashboard-insights__title">
-              <span className="dashboard-insights__title-icon">
-                <HiOutlineSparkles size={20} />
-              </span>
-              Validation Insights
-            </h2>
-          </div>
-          <div className="dashboard-empty-state">
-            <p className="dashboard-empty-state__text">
-              This session was created on a different server. Insights are stored per server, so they don’t appear here.
-            </p>
-            <p className="dashboard-empty-state__hint">
-              Run a new analysis using the form above to see your dashboard and insight cards on this server.
-            </p>
-            <button
-              type="button"
-              className="dashboard-btn dashboard-btn--primary"
-              onClick={() => navigate('/')}
-            >
-              Start new analysis
-            </button>
-          </div>
-        </section>
-        )}
-
         {cards.length > 0 && (
         <section className={`dashboard-insights ${insightsExpanded ? 'dashboard-insights--expanded' : ''}`}>
           <div className="dashboard-insights__head">
@@ -982,14 +1010,14 @@ export default function Dashboard() {
           </div>
 
           <div className="dashboard-chat-panel__chips">
-            {QUICK_PROMPTS.map(({ id, label, Icon, prompt }) => (
+            {QUICK_PROMPTS.map(({ id, label, Icon }) => (
               <button
                 key={id}
                 type="button"
                 className={`dashboard-chat-panel__chip ${activeChip === id ? 'dashboard-chat-panel__chip--active' : ''}`}
                 onClick={() => {
                   setActiveChip(id);
-                  sendChatMessage(prompt || label);
+                  sendChatMessage(id === 'draft' ? 'Draft a negotiation email' : label);
                 }}
                 disabled={chatLoading}
               >
@@ -1000,6 +1028,16 @@ export default function Dashboard() {
           </div>
 
           <div className="dashboard-chat-panel__messages">
+            {chatLoading && (
+              <div className="dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--assistant">
+                <div className="dashboard-chat-panel__avatar dashboard-chat-panel__avatar--agent">
+                  <HiOutlineChatBubbleLeftRight size={18} />
+                </div>
+                <div className="dashboard-chat-panel__msg dashboard-chat-panel__msg--assistant dashboard-chat-panel__msg--loading">
+                  <span className="dashboard-chat-panel__msg-text">Thinking…</span>
+                </div>
+              </div>
+            )}
             {chatMessages.map((msg, i) => (
               <div key={i} className={`dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--${msg.role}`}>
                 {msg.role === 'assistant' && (
@@ -1019,17 +1057,6 @@ export default function Dashboard() {
                 )}
               </div>
             ))}
-            {chatLoading && (
-              <div className="dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--assistant">
-                <div className="dashboard-chat-panel__avatar dashboard-chat-panel__avatar--agent">
-                  <HiOutlineChatBubbleLeftRight size={18} />
-                </div>
-                <div className="dashboard-chat-panel__msg dashboard-chat-panel__msg--assistant dashboard-chat-panel__msg--loading">
-                  <span className="dashboard-chat-panel__msg-text">Thinking…</span>
-                </div>
-              </div>
-            )}
-            <div ref={chatMessagesEndRef} aria-hidden />
           </div>
 
           <form
