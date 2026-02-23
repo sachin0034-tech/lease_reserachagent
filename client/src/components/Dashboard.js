@@ -297,12 +297,10 @@ function SettingsModal({ open, onClose, onSave }) {
   useEffect(() => {
     if (!open) return;
     const stored = typeof window !== 'undefined' ? window.localStorage.getItem('lg_llm_provider') : null;
-    // App default is OpenAI. Respect explicit 'openai'; treat missing or legacy 'anthropic' as default (OpenAI).
     if (stored === 'openai') {
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
     } else {
-      // No stored value, or stored was 'anthropic' (old default) → show and persist OpenAI as default
       setOpenaiEnabled(true);
       setAnthropicEnabled(false);
       try {
@@ -652,8 +650,15 @@ export default function Dashboard() {
   const [chatInput, setChatInput] = useState('');
   const [activeChip, setActiveChip] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
+  const chatMessagesContainerRef = useRef(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
+  // Scroll chat to bottom when new message or thinking indicator appears
+  useEffect(() => {
+    const el = chatMessagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight - el.clientHeight;
+  }, [chatMessages, chatLoading]);
 
   const sendChatMessage = async (text) => {
     const trimmed = (text || '').trim();
@@ -694,10 +699,11 @@ export default function Dashboard() {
     }
   };
 
+  // Template prompts sent to the model when user clicks a chip (use full prompts for better answers)
   const QUICK_PROMPTS = [
-    { id: 'draft', label: 'Draft negotiation email', Icon: HiOutlineEnvelope },
-    { id: 'risk', label: 'Explain risk factors', Icon: HiOutlineInformationCircle },
-    { id: 'comps', label: 'Compare with recent comps', Icon: HiOutlineChartBar },
+    { id: 'draft', label: 'Draft negotiation email', Icon: HiOutlineEnvelope, prompt: 'Using the analysis and evidence we have for this property, draft a short professional negotiation email I can send to the landlord (or tenant) to open a rent discussion. Keep it concise and reference key points from the forecast.' },
+    { id: 'risk', label: 'Explain risk factors', Icon: HiOutlineInformationCircle, prompt: 'Based on the analysis and evidence we have gathered, explain the main risk factors for this lease and how they might affect the tenant, landlord, or deal. Be specific and reference the insights where relevant.' },
+    { id: 'comps', label: 'Compare with recent comps', Icon: HiOutlineChartBar, prompt: 'Using the data and comps we have, compare this property’s rent and terms with recent comparable leases in the area. Summarize how this deal stacks up and any notable differences.' },
   ];
   const INITIAL_INSIGHTS = 6;
   const IMPACT_ORDER = { positive: 0, neutral: 1, negative: 2 };
@@ -1010,14 +1016,14 @@ export default function Dashboard() {
           </div>
 
           <div className="dashboard-chat-panel__chips">
-            {QUICK_PROMPTS.map(({ id, label, Icon }) => (
+            {QUICK_PROMPTS.map(({ id, label, Icon, prompt }) => (
               <button
                 key={id}
                 type="button"
                 className={`dashboard-chat-panel__chip ${activeChip === id ? 'dashboard-chat-panel__chip--active' : ''}`}
                 onClick={() => {
                   setActiveChip(id);
-                  sendChatMessage(id === 'draft' ? 'Draft a negotiation email' : label);
+                  sendChatMessage(prompt || label);
                 }}
                 disabled={chatLoading}
               >
@@ -1027,17 +1033,7 @@ export default function Dashboard() {
             ))}
           </div>
 
-          <div className="dashboard-chat-panel__messages">
-            {chatLoading && (
-              <div className="dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--assistant">
-                <div className="dashboard-chat-panel__avatar dashboard-chat-panel__avatar--agent">
-                  <HiOutlineChatBubbleLeftRight size={18} />
-                </div>
-                <div className="dashboard-chat-panel__msg dashboard-chat-panel__msg--assistant dashboard-chat-panel__msg--loading">
-                  <span className="dashboard-chat-panel__msg-text">Thinking…</span>
-                </div>
-              </div>
-            )}
+          <div className="dashboard-chat-panel__messages" ref={chatMessagesContainerRef}>
             {chatMessages.map((msg, i) => (
               <div key={i} className={`dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--${msg.role}`}>
                 {msg.role === 'assistant' && (
@@ -1057,6 +1053,16 @@ export default function Dashboard() {
                 )}
               </div>
             ))}
+            {chatLoading && (
+              <div className="dashboard-chat-panel__msg-row dashboard-chat-panel__msg-row--assistant">
+                <div className="dashboard-chat-panel__avatar dashboard-chat-panel__avatar--agent">
+                  <HiOutlineChatBubbleLeftRight size={18} />
+                </div>
+                <div className="dashboard-chat-panel__msg dashboard-chat-panel__msg--assistant dashboard-chat-panel__msg--loading">
+                  <span className="dashboard-chat-panel__msg-text">Thinking…</span>
+                </div>
+              </div>
+            )}
           </div>
 
           <form
