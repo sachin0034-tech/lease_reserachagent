@@ -3109,5 +3109,252 @@
         "source_url": "https://banfflakelouise.bynder.com/m/61fb468733f03158/original/2018_AnnualReport_BLLT.pdf"
       }
     ]
+  },
+  "62aec74c-3d65-4eff-9c7c-3da4b26f97da": {
+    "analyze_as": "tenant",
+    "property_name": "Fairmount Lake Louise",
+    "address": "111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai",
+    "dashboard_summary": {
+      "fair_market_rent": 40.0,
+      "confidence_score": 75,
+      "vs_current_pct": -4.76,
+      "recommendations": {
+        "ideal_term": "5 Years + 1 Option",
+        "ideal_term_reasoning": "A 5-year term aligns with the stability indicated in the Rent Forecast and anticipated visitor growth, allowing the tenant to capitalize on increasing consumer interest while maintaining flexibility.",
+        "negotiation_leverage": "Moderate (Positive local vacancy and tenant business category trends provide some leverage.)",
+        "negotiation_leverage_reasoning": "With a low local vacancy rate, the tenant can leverage the potential for sustained business growth, but foot traffic and high occupancy rates could still limit negotiation power.",
+        "renewals": "Cap at 3% YoY",
+        "renewals_reasoning": "Given the stable rent forecast and positive demographic trends, a capped increase is reasonable to secure tenant affordability against rising market conditions."
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 40.0,
+        "comparison_pct": 5.0,
+        "comparison_text": "This property is above the estimated fair market rent by 5%."
+      },
+      "recommendations_source": "openai"
+    },
+    "cards": [
+      {
+        "title": "Local Income Shifts",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "Not available",
+        "insight": "Current economic indicators show unstable income growth in the Lake Louise area, which could affect tenant purchasing power.",
+        "data_evidence": "No data",
+        "why_it_matters": "This is negative for you because if local incomes are lower than expected, it may limit consumer spending, weakening your position when negotiating rent; you might question how a high rent can be justified in a stagnant income environment.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.workopolis.com/jobsearch/viewjob/k-SD1CnhCNJDKJBFVrMKSjT5fNbYt1g9F7Bl9c0GI3cJ41fh5hG6YawGYlw0LVku"
+      },
+      {
+        "title": "Future Traffic Counts",
+        "impact": "positive",
+        "confidence_score": 75,
+        "source": "Parks Canada",
+        "insight": "Visitor traffic to Lake Louise has surged by 70% over the last decade, and improvements to local infrastructure are expected to enhance accessibility.",
+        "data_evidence": "Visitor traffic to Lake Louise has surged by 70% in the last decade.",
+        "why_it_matters": "This is positive for you because increased traffic could lead to higher footfall for your business, which strengthens your negotiation position to advocate for current rent levels or even force the landlord to justify rent increases.",
+        "baseline_pct": 50,
+        "current_trend_pct": 85,
+        "source_url": "https://www.todocanada.ca/12-million-infrastructure-upgrades-completed-in-lake-louise-area-to-enhance-safety-and-wildlife-connectivity/"
+      },
+      {
+        "title": "Rent Averages in Area",
+        "impact": "negative",
+        "confidence_score": 80,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "The average nightly rates for hotels and retail spaces around Lake Louise are significantly lower than the current asking rent of $42/sf.",
+        "data_evidence": "Average rates for a Standard Room: $587 - $1,646.",
+        "why_it_matters": "This is negative for you as the tenant because the high hotel rates suggest that the area is upscale, but it also means you need to leverage lower comparable retail rents in your negotiations; this might encourage the landlord to reassess their rent expectations against the nearby competition.",
+        "baseline_pct": 60,
+        "current_trend_pct": 50,
+        "source_url": "https://www.tripadvisor.com/Hotel_Review-g154912-d186815-Reviews-or10-Fairmont_Chateau_Lake_Louise-Lake_Louise_Banff_National_Park_Alberta.html"
+      },
+      {
+        "title": "Rent Forecast in Area",
+        "impact": "neutral",
+        "confidence_score": 50,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "Predictions for retail rent levels in Lake Louise suggest stabilization, with no significant upward or downward trends anticipated in the near future.",
+        "data_evidence": "Current rent remains stable, with no upward pressure indicated.",
+        "why_it_matters": "This is neutral for you because a stable rent forecast means you might maintain your current position, but it does not provide leverage to negotiate either a decrease or an increase in rent; you will need other data points to strengthen your discussion with the landlord.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.expedia.com.tw/en/Lake-Louise-Hotels-Fairmont-Chateau-Lake-Louise.h22503.Hotel-Information"
+      },
+      {
+        "title": "Infrastructure Developments",
+        "impact": "positive",
+        "confidence_score": 85,
+        "source": "Parks Canada",
+        "insight": "Recent infrastructure upgrades in Lake Louise aim to enhance visitor experience and access, potentially driving up rent values due to increased demand.",
+        "data_evidence": "Parks Canada completed a $12 million project to enhance roadway infrastructure in Lake Louise.",
+        "why_it_matters": "This is positive for you because it indicates that improvements to the area might drive more visitors and potential customers to your business, thereby justifying your current rent level more effectively and providing leverage to negotiate fair terms based on future growth.",
+        "baseline_pct": null,
+        "current_trend_pct": 80,
+        "source_url": "https://www.unccd.int/sites/default/files/2022-05/1871_Book_SDS_%20Compendium_V1.pdf"
+      },
+      {
+        "title": "Co-tenancy mix",
+        "impact": "neutral",
+        "confidence_score": 70,
+        "source": "CBRE Canada",
+        "insight": "The retail landscape in Banff, which influences Lake Louise, is heavily impacted by tourist-driven demand and an evolving mix of international retailers.",
+        "data_evidence": "Banff has seen an increase in interest from international retailers, creating high demand and a competitive rental environment.",
+        "why_it_matters": "This is neutral because while the presence of strong co-tenants can enhance your negotiation position, the current trend towards attracting high-profile retailers may give landlords leverage in maintaining asking rents.",
+        "baseline_pct": 60,
+        "current_trend_pct": 70,
+        "source_url": "https://www.cbre.ca/insights/articles/banff-is-transforming-into-a-retail-hotspot"
+      },
+      {
+        "title": "Demographics & consumer buying capacity",
+        "impact": "positive",
+        "confidence_score": 65,
+        "source": "Banff & Lake Louise",
+        "insight": "The demographics of visitors to Lake Louise primarily comprise affluent customers, with 92% of MICE visitors representing upper and middle-income brackets.",
+        "data_evidence": "92% of MICE visitors to Banff represent upper and Canadian demographics, promoting higher spending potential.",
+        "why_it_matters": "This is positive for you as tenant because you can leverage the high spending capacity of demographics in the area to justify negotiations for lower rents due to increased demand for premium experiences.",
+        "baseline_pct": 75,
+        "current_trend_pct": 80,
+        "source_url": "https://www.studocu.com/en-au/document/university-of-canberra/tourism-and-the-world-economy/business-pan-11324/8150646"
+      },
+      {
+        "title": "Footfall",
+        "impact": "negative",
+        "confidence_score": 80,
+        "source": "Parks Canada",
+        "insight": "Visitor management plans indicate a strong increase in foot traffic at Lake Louise, enhancing potential sales for retail tenants.",
+        "data_evidence": "The management plan aims to enhance visitor experiences while managing increasing traffic at key sites like Lake Louise.",
+        "why_it_matters": "This is negative for you because strong footfall allows the landlord to justify the current rent, leaving you with less room to negotiate downward.",
+        "baseline_pct": 60,
+        "current_trend_pct": 85,
+        "source_url": "https://parks.canada.ca/pn-np/ab/banff/info/gestion-management/involved/ll-vum/llvum-wwh-phase1"
+      },
+      {
+        "title": "Local vacancy",
+        "impact": "positive",
+        "confidence_score": 60,
+        "source": "Parks Canada",
+        "insight": "The potential for new commercial developments in Lake Louise is limited due to strict regulations, indicating less competition and opportunities for existing tenants.",
+        "data_evidence": "Current community surveys indicate only 10,524 square meters available for commercial expansion under existing park regulations.",
+        "why_it_matters": "This is positive as it gives you leverage to negotiate, knowing that new developments aren't likely to overshadow your space, strengthening your position when discussing rent reductions.",
+        "baseline_pct": 20,
+        "current_trend_pct": 15,
+        "source_url": "https://www.rmoutlook.com/lake-louise/parks-canada-to-put-deadline-on-commercial-development-in-lake-louise-11890995"
+      },
+      {
+        "title": "Tenant business category trends",
+        "impact": "positive",
+        "confidence_score": 75,
+        "source": "Retail Insider",
+        "insight": "Retail sales in tourist hotspots like Lake Louise are expected to grow, with trends showing strong performance in outdoor and experience-driven categories.",
+        "data_evidence": "The number of tourist arrivals is notably increasing, fostering a robust retail environment.",
+        "why_it_matters": "This is positive for you because the upward trend in consumer interest can be used to negotiate for fair rent based on anticipated increases in foot traffic and spending, rather than the current high rates.",
+        "baseline_pct": 70,
+        "current_trend_pct": 80,
+        "source_url": "https://retail-insider.com/retail-insider/2022/05/banff-to-see-retail-fundamentals-improve-as-canadian-and-international-tourists-return-this-summer-experts/"
+      },
+      {
+        "title": "Tenant Landlord Risk Facts",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "There is no currently available detailed information on the tenant/landlord risk factors specifically related to the Fairmount Lake Louise property.",
+        "data_evidence": "No data",
+        "why_it_matters": "Understanding tenant and landlord risk factors is crucial for negotiation as it influences trust and stability in the lease relationship. If data existed, it could provide insights into financial pressures or historical issues that can impact negotiations for rent adjustments or lease terms.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.chateau-lake-louise.com/offers/"
+      },
+      {
+        "title": "Upcoming Building Maintenance",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "Details regarding upcoming maintenance work at Fairmount Lake Louise are currently not available.",
+        "data_evidence": "No data",
+        "why_it_matters": "Knowing about upcoming maintenance is vital as it can affect the quality of the tenant's experience and operational costs. If data were available, it could significantly influence negotiations regarding rent adjustments or lease flexibility during maintenance periods.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.chateau-lake-louise.com/press/basin-opening-announced/"
+      },
+      {
+        "title": "Market Activity & Trends",
+        "impact": "negative",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "Current market activity and trends for the tenant category at Fairmount Lake Louise are not available for analysis.",
+        "data_evidence": "No data",
+        "why_it_matters": "Understanding market activity and trends helps in assessing competition and setting expectations for rent negotiations. If this data were available, it would clarify potential challenges or opportunities that could be leveraged in rent discussions.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.visainfiniteluxuryhotels.ca/hotel-detail/fairmont-chateau-lake-louise"
+      },
+      {
+        "title": "Sales Comparables",
+        "impact": "negative",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "Information on sales comparables for Fairmount Lake Louise and other brands is not currently accessible.",
+        "data_evidence": "No data",
+        "why_it_matters": "Sales comparables are crucial for determining if the current rent is aligned with the market. If such data were available, it would be instrumental for the tenant to negotiate a lower rent based on comparable leases or successful competitors.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://www.flyertalk.com/forum/accor-all-accor-live-limitless/1060886-fairmont-chateau-lake-louise-alberta-canada-32.html"
+      },
+      {
+        "title": "Portfolio Data Insights",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": "No user-provided portfolio data is currently available to draw insights from.",
+        "data_evidence": "No data",
+        "why_it_matters": "Portfolio data can reveal how this lease compares to others in a tenant's portfolio, impacting leveraging strategies during negotiations. Having this information would allow for a more tailored negotiation approach if data were available.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://webdocs.tustinca.org/Weblink/DocView.aspx?id=71911&dbid=0&repo=TUSTIN"
+      },
+      {
+        "title": "Card 6",
+        "impact": "neutral",
+        "confidence_score": 0,
+        "source": "Not available",
+        "insight": null,
+        "data_evidence": "No data",
+        "why_it_matters": "This insight on Card 6 is relevant for negotiating lower or fair rent given the neutral impact.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "ftp://ftp.cs.princeton.edu/pub/cs226/autocomplete/words-333333.txt"
+      },
+      {
+        "title": "NOI Overview",
+        "impact": "neutral",
+        "confidence_score": 60,
+        "source": "Fairmont Chateau Lake Louise",
+        "insight": "Fairmont Chateau Lake Louise has an estimated annual revenue of $145.7 million, indicating a potentially strong financial position.",
+        "data_evidence": "Estimated annual revenue is $145.7M yearly.",
+        "why_it_matters": "This presents a neutral situation for you as the tenant because while a strong NOI suggests the landlord can afford to maintain the property, it also implies they might be less willing to negotiate on rent.",
+        "baseline_pct": 60,
+        "current_trend_pct": null,
+        "source_url": "https://growjo.com/company/Fairmont_Chateau_Lake_Louise"
+      },
+      {
+        "title": "Average Occupancy Rates",
+        "impact": "neutral",
+        "confidence_score": 70,
+        "source": "Banff & Lake Louise",
+        "insight": "Banff and Lake Louise's tourism strategies have resulted in a potential economic impact of $320 million, suggesting a healthy occupancy scenario for hotels in the region.",
+        "data_evidence": "The annual report states significant marketing efforts led to exceptional tourism results, indicating strong demand in nearby areas.",
+        "why_it_matters": "This is neutral for you as a tenant because while high occupancy rates can support the landlord's rent ask, it can also lead to increased foot traffic beneficial for the tenant's business.",
+        "baseline_pct": null,
+        "current_trend_pct": null,
+        "source_url": "https://plansandreports.banfflakelouise.com/2024annualreport/"
+      }
+    ]
   }
 }
