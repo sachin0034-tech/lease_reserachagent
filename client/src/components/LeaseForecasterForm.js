@@ -54,7 +54,6 @@ const LightningIcon = () => (
 const ROLES = [
   { id: 'tenant', label: 'Tenant', icon: PersonIcon },
   { id: 'landlord', label: 'Landlord', icon: BuildingIcon },
-  { id: 'broker', label: 'Broker', icon: BriefcaseIcon },
 ];
 
 export default function LeaseForecasterForm() {
@@ -178,18 +177,18 @@ export default function LeaseForecasterForm() {
           </button>
           <div className="user-info">
             <div className="user-text">
-              <span className="user-name">Rajat Sharma</span>
-              <span className="user-role">LegalGraph Admin</span>
+              <span className="user-name">LegalGraph User</span>
+              <span className="user-role">Admin</span>
             </div>
-            <div className="user-avatar" aria-hidden>RS</div>
+            <div className="user-avatar" aria-hidden>LG</div>
           </div>
         </div>
       </header>
 
       <main className="main-content">
         <div className="form-hero">
-          <h1 className="form-title">AI Lease Forecaster</h1>
-          <p className="form-subtitle">Upload your documents and let our agents research market validations.</p>
+          <h1 className="form-title">AI Research Agent for Lease</h1>
+          <p className="form-subtitle">Uncover fair market rent and data backed leverage to strengthen your negotiation</p>
         </div>
         <div className="form-card">
           <form onSubmit={handleSubmit} className="forecaster-form">
