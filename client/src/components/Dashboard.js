@@ -283,11 +283,6 @@ export { InsightCardTile, EvidenceModal, SettingsModal };
 
 const INDUSTRY_OPTIONS = ['Retail / Apparel', 'F&B', 'Office'];
 
-  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
-  const [openaiEnabled, setOpenaiEnabled] = useState(true);
-  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
-  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
-  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
 function SettingsModal({ open, onClose, onSave }) {
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('Retail / Apparel');
@@ -295,6 +290,12 @@ function SettingsModal({ open, onClose, onSave }) {
   const [documents, setDocuments] = useState([]);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
+  const [openaiEnabled, setOpenaiEnabled] = useState(true);
+  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
+  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
+  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
 
   useEffect(() => {
     if (!open) return;
