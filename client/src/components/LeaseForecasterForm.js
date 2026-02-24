@@ -60,8 +60,8 @@ const ROLES = [
 export default function LeaseForecasterForm() {
   const navigate = useNavigate();
   const [analyzeAs, setAnalyzeAs] = useState('tenant');
-  const [propertyName, setPropertyName] = useState('Fairmount Lake Louise');
-  const [address, setAddress] = useState('111 Lake Louise Dr, Lake Louise, AB T0L 1E0, Canada');
+  const [propertyName, setPropertyName] = useState('Westfield Centre');
+  const [address, setAddress] = useState('1200 Market Street, San Francisco, CA');
   const [leasableArea, setLeasableArea] = useState('2500');
   const [currentBaseRent, setCurrentBaseRent] = useState('42.00');
   const [inputMode, setInputMode] = useState('file'); // 'file' | 'text'

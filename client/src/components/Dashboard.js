@@ -284,17 +284,18 @@ export { InsightCardTile, EvidenceModal, SettingsModal };
 const INDUSTRY_OPTIONS = ['Retail / Apparel', 'F&B', 'Office'];
 
 function SettingsModal({ open, onClose, onSave }) {
-  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
-  const [openaiEnabled, setOpenaiEnabled] = useState(true);
-  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
-  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
-  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [category, setCategory] = useState('Retail / Apparel');
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   const [documents, setDocuments] = useState([]);
   const dropdownRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Default: OpenAI. Only one provider can be enabled. Stored value applied when modal opens.
+  const [openaiEnabled, setOpenaiEnabled] = useState(true);
+  const [anthropicEnabled, setAnthropicEnabled] = useState(false);
+  const [llmProviderModalOpen, setLlmProviderModalOpen] = useState(false);
+  const [llmProviderModalMessage, setLlmProviderModalMessage] = useState('');
 
   useEffect(() => {
     if (!open) return;
@@ -339,6 +340,11 @@ function SettingsModal({ open, onClose, onSave }) {
   };
 
   const handleSaveChanges = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lg_llm_provider', openaiEnabled ? 'openai' : 'anthropic');
+      }
+    } catch (_) {}
     onSave?.();
     onClose();
   };
@@ -404,6 +410,18 @@ function SettingsModal({ open, onClose, onSave }) {
         </section>
 
         <section className="dashboard-settings-modal__section">
+          <h3 className="dashboard-settings-modal__section-title">LLM Provider</h3>
+          <p className="dashboard-settings-modal__label">
+            Current: <strong>{openaiEnabled ? 'OpenAI' : 'Anthropic'}</strong> (OpenAI: {openaiEnabled ? 'On' : 'Off'}, Anthropic: {anthropicEnabled ? 'On' : 'Off'}). Stored preference is applied when you open this modal; Save persists it.
+          </p>
+          {llmProviderModalOpen && (
+            <p role="alert" className="dashboard-settings-modal__alert">
+              {llmProviderModalMessage}
+            </p>
+          )}
+        </section>
+
+        <section className="dashboard-settings-modal__section">
           <h3 className="dashboard-settings-modal__section-title">Knowledge Base (Documents)</h3>
           <input
             ref={fileInputRef}
@@ -455,18 +473,66 @@ function SettingsModal({ open, onClose, onSave }) {
   );
 }
 
-const SESSION_STORAGE_KEY = 'lg_session_id';
+const SESSION_STORAGE_KEY = 'lg_analysis_session_id';
 
 export default function Dashboard() {
   const location = useLocation();
   const navigate = useNavigate();
   const state = location.state || {};
-  const dashboardSummary = state.dashboardSummary || {};
-  const allCards = dedupeCardsByTitle(state.cards || []);
+  // Prefer state (from navigation); fall back to localStorage so chat works after refresh or return later
+  const sessionIdFromState = state.sessionId || null;
+  const [sessionId, setSessionId] = useState(() => {
+    if (sessionIdFromState) return sessionIdFromState;
+    try {
+      return (typeof window !== 'undefined' && window.localStorage.getItem(SESSION_STORAGE_KEY)) || null;
+    } catch {
+      return null;
+    }
+  });
+  // Sync: when we have state.sessionId, persist it and use it; when state updates with new session, update local state
+  useEffect(() => {
+    if (state.sessionId) {
+      setSessionId(state.sessionId);
+      try {
+        if (typeof window !== 'undefined') window.localStorage.setItem(SESSION_STORAGE_KEY, state.sessionId);
+      } catch (_) {}
+    }
+  }, [state.sessionId]);
+
+  // Restore dashboard data when we have sessionId (e.g. from localStorage after refresh) but no state
+  const [restoredData, setRestoredData] = useState(null);
+  const restoredSummary = restoredData?.dashboard_summary ?? null;
+  const restoredCards = restoredData?.cards ?? [];
+  const restoredProperty = restoredData?.property ?? {};
+  useEffect(() => {
+    const apiBase = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+    const hasCards = Array.isArray(state.cards) && state.cards.length > 0;
+    const hasSummary = state.dashboardSummary && (state.dashboardSummary.fair_market_rent != null || state.dashboardSummary.property);
+    if (!sessionId) return;
+    if (hasSummary && hasCards) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
+        if (cancelled) return;
+        if (res.status === 404) {
+          setRestoredData({ session_found: false, property: {}, dashboard_summary: null, cards: [] });
+          return;
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setRestoredData(data);
+      } catch (_) {}
+    })();
+    return () => { cancelled = true; };
+  }, [sessionId, state.dashboardSummary, state.cards]);
+
+  const dashboardSummary = state.dashboardSummary || restoredSummary || {};
+  const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
   const cards = allCards.filter(hasCardData);
-  const property = state.property || dashboardSummary?.property || {};
-  const sessionId = state.sessionId || null;
-  const [sessionNotFoundOnServer, setSessionNotFoundOnServer] = useState(false);
+  const property = state.property || dashboardSummary?.property || restoredProperty || {};
+  const sessionNotFoundOnServer = restoredData && restoredData.session_found === false;
+
   const [evidenceCard, setEvidenceCard] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [saveToastVisible, setSaveToastVisible] = useState(false);
@@ -503,7 +569,10 @@ export default function Dashboard() {
     try {
       if (typeof window !== 'undefined' && !effectiveSessionId) {
         const fromStorage = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        if (fromStorage) effectiveSessionId = fromStorage;
+        if (fromStorage) {
+          effectiveSessionId = fromStorage;
+          setSessionId(fromStorage);
+        }
       }
     } catch (_) {}
     if (!effectiveSessionId) {
@@ -541,7 +610,7 @@ export default function Dashboard() {
         try {
           if (typeof window !== 'undefined') window.localStorage.removeItem(SESSION_STORAGE_KEY);
         } catch (_) {}
-        setSessionNotFoundOnServer(true);
+        setSessionId(null);
       }
       setChatMessages((prev) => [...prev, { role: 'assistant', text: reply }]);
     } catch (err) {

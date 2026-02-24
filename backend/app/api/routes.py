@@ -311,13 +311,14 @@ class ChatRequest(BaseModel):
     session_id: str
     message: str
     llm_provider: str | None = None
+    llm_model: str | None = None
 
 
 @router.post("/analyze/chat")
 def analyze_chat(body: ChatRequest):
     """
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
-    Returns a concise, to-the-point reply from the configured LLM provider.
+    Returns a concise, to-the-point reply from the configured LLM provider and model.
     """
     session = _sessions.get(body.session_id)
     if not session:
