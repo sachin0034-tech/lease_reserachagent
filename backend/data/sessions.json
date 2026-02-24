@@ -5336,5 +5336,23 @@
         "source_url": "https://growsf.org/research/2025-07-14-retail-vacancy/"
       }
     ]
+  },
+  "580fe050-a833-4358-9c13-68cb5425a697": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai"
+  },
+  "a3351719-5cbc-4246-af31-d9dade41abe4": {
+    "analyze_as": "tenant",
+    "property_name": "Westfield Centre",
+    "address": "1200 Market Street, San Francisco, CA",
+    "leasable_area": "2500",
+    "current_base_rent": "42.00",
+    "document_context": null,
+    "llm_provider": "openai"
   }
 }
