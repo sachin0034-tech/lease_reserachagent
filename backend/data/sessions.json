@@ -5353,6 +5353,172 @@
     "leasable_area": "2500",
     "current_base_rent": "42.00",
     "document_context": null,
-    "llm_provider": "openai"
+    "llm_provider": "openai",
+    "dashboard_summary": {
+      "fair_market_rent": 36.57,
+      "confidence_score": 85,
+      "vs_current_pct": -12.93,
+      "recommendations": {
+        "ideal_term": "3 Years",
+        "ideal_term_reasoning": "A 3-year lease term is suggested due to the current volatility in the area, supported by the local vacancy rates that are rising, providing tenants more favorable conditions.",
+        "negotiation_leverage": "High (increased vacancy rates suggest a tenant-favorable negotiation environment)",
+        "negotiation_leverage_reasoning": "The increase in local vacancy rates and recent tenant departures provide significant leverage for negotiating lower rents as landlords are under pressure to fill space.",
+        "renewals": "Cap at 2% YoY",
+        "renewals_reasoning": "Given the negative trends in income and consumer spending, a cap at 2% for renewals is a sensible request to ensure affordability in a fluctuating market."
+      },
+      "portfolio_context": {
+        "this_property_rent": 42.0,
+        "portfolio_avg_rent": 36.57,
+        "comparison_pct": 14.85,
+        "comparison_text": "Current rent is 14% higher than the average market rent."
+      },
+      "recommendations_source": "openai"
+    },
+    "cards": [
+      {
+        "title": "Local Income Trends",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "Cushman & Wakefield",
+        "insight": "The median household income in San Francisco has shown minimal growth at 0.3% year-over-year, indicating potential difficulty for businesses due to stagnant consumer spending.",
+        "data_evidence": "Q3 2025 report: Median HH income at $142,200; YOY growth at 0.3%.",
+        "why_it_matters": "This is negative for you as a tenant because stagnant income growth can lead to reduced consumer spending, which may impact your business performance and leverage for negotiating rent down.",
+        "baseline_pct": 100,
+        "current_trend_pct": 30,
+        "source_url": "https://assets.cushmanwakefield.com/-/media/cw/marketbeat-pdfs/2025/q3/us-reports/retail/sanfrancisco_americas_marketbeat_retail_q32025.pdf?rev=4df86f843715454e986e7082017bbfe2"
+      },
+      {
+        "title": "Traffic Trends",
+        "impact": "neutral",
+        "confidence_score": 60,
+        "source": "SFMTA Traffic Counts",
+        "insight": "Traffic counts along Market Street have exhibited fluctuations, with periods of increased congestion but also intervals of decreased foot traffic.",
+        "data_evidence": "Traffic count data indicates varying vehicle and pedestrian volumes on Market Street.",
+        "why_it_matters": "This is neutral for you as it presents a mixed picture; increased traffic could bring more customers, but any decrease could limit footfall to your potential retail space.",
+        "baseline_pct": 50,
+        "current_trend_pct": 50,
+        "source_url": "https://www.sfmta.com/TrafficCounts"
+      },
+      {
+        "title": "Rent Averages",
+        "impact": "positive",
+        "confidence_score": 80,
+        "source": "Property Shark",
+        "insight": "The average rent for retail space in San Francisco is approximately $36.57/sf, indicating your current rent might be on the higher side.",
+        "data_evidence": "Average retail rent at $36.57/sf in San Francisco, compared to your asking rent of $42/sf.",
+        "why_it_matters": "This is positive for you as a tenant because you can leverage this information to negotiate lower rent by comparing the average rates in the area.",
+        "baseline_pct": 49,
+        "current_trend_pct": 45,
+        "source_url": "https://www.propertyshark.com/cre/retail/us/ca/san-francisco/"
+      },
+      {
+        "title": "Rent Forecast",
+        "impact": "negative",
+        "confidence_score": 70,
+        "source": "Cushman & Wakefield",
+        "insight": "Market expectations suggest a modest increase in retail rents, outpacing growth in some neighboring areas.",
+        "data_evidence": "Forecast expects rental increases, despite current vacancy trends in San Francisco.",
+        "why_it_matters": "This is negative for you as the tenant; if rents are expected to rise, it strengthens the landlord's hand in justifying the current asking price, limiting your negotiation leverage.",
+        "baseline_pct": 40,
+        "current_trend_pct": 50,
+        "source_url": "https://assets.sfstandard.com/asset/994911177489/document_rsm2pia9794572o7ebii12ea5s/?content-disposition=inline"
+      },
+      {
+        "title": "Infrastructure Developments",
+        "impact": "positive",
+        "confidence_score": 75,
+        "source": "Urban Land Institute",
+        "insight": "Plans for revitalizing Market Street through new developments are underway, which may enhance retail potential in the area.",
+        "data_evidence": "New residential and commercial developments are aimed at improving Market Street's vibrancy and foot traffic.",
+        "why_it_matters": "This is positive for you as a tenant since improvements in infrastructure and development may lead to increased foot traffic, thereby enhancing your store's visibility and sales potential, informing a favorable renegotiation of lease terms.",
+        "baseline_pct": 20,
+        "current_trend_pct": 80,
+        "source_url": "https://urbanland.uli.org/design-planning/reviving-market-street-fresh-ideas-spark-new-hope-for-san-franciscos-historic-corridor"
+      },
+      {
+        "title": "Co-tenancy dynamics",
+        "impact": "negative",
+        "confidence_score": 75,
+        "source": "San Francisco Centre auction",
+        "insight": "The San Francisco Centre is facing significant tenant turnover with new owners reportedly evicting remaining tenants, which undermines the co-tenancy stability necessary for thriving retail.",
+        "data_evidence": "Recent reports indicate that the new owners sent eviction letters to remaining tenants, aiming to terminate leases.",
+        "why_it_matters": "This is negative for you because the instability in co-tenancy could further diminish foot traffic, affecting your ability to negotiate a better rent.",
+        "baseline_pct": 50,
+        "current_trend_pct": 30,
+        "source_url": "https://www.cbsnews.com/sanfrancisco/news/san-francisco-centre-mall-sold-at-auction-for-about-133-million/"
+      },
+      {
+        "title": "Consumer buying capacity",
+        "impact": "negative",
+        "confidence_score": 80,
+        "source": "Westfield San Francisco Centre",
+        "insight": "After major retail closures, the area's demographics have shifted, reducing consumer buying capacity as fewer shoppers visit the mall.",
+        "data_evidence": "Post-tenant departures have significantly influenced mall foot traffic, with major retailers like Nordstrom leaving, leading to a demographic decline.",
+        "why_it_matters": "This is negative for you as tenant since reduced consumer spending power can lead to lower sales, affecting your ability to justify current rent levels.",
+        "baseline_pct": 75,
+        "current_trend_pct": 40,
+        "source_url": "https://casestudies.uli.org/westfield-san-francisco-center/"
+      },
+      {
+        "title": "Foot traffic decline",
+        "impact": "negative",
+        "confidence_score": 85,
+        "source": "San Francisco Centre foot",
+        "insight": "Foot traffic around the San Francisco Centre has decreased significantly, exacerbating the challenges faced by remaining retailers in attracting customers.",
+        "data_evidence": "Foot traffic has dropped over 30% since 2019, compounding the mall's struggles following high-profile store closures.",
+        "why_it_matters": "This is negative for you because decreased foot traffic suggests that it will be harder to maintain sales, making it more challenging to negotiate favorable lease terms.",
+        "baseline_pct": 100,
+        "current_trend_pct": 40,
+        "source_url": "https://www.forbes.com/sites/markfaithfull/2025/10/16/will-near-empty-san-francisco-centre-ever-find-a-buyer/"
+      },
+      {
+        "title": "Local vacancy rates",
+        "impact": "positive",
+        "confidence_score": 78,
+        "source": "San Francisco retail market",
+        "insight": "The overall vacancy rate in the San Francisco retail market has increased, providing leverage to tenants in negotiating rent reductions.",
+        "data_evidence": "The vacancy rate for the retail market rose by 7.6%, indicating a shift towards tenant favorable conditions in lease negotiations.",
+        "why_it_matters": "This is positive for you because the increase in local vacancy allows you to argue for lower rent due to the wealth of available options for both tenants and landlords.",
+        "baseline_pct": 5,
+        "current_trend_pct": 7,
+        "source_url": "https://www.sfchronicle.com/sf/article/sf-downtown-mall-19512570.php"
+      },
+      {
+        "title": "Business category trends",
+        "impact": "positive",
+        "confidence_score": 70,
+        "source": "San Francisco Centre new",
+        "insight": "The addition of smaller, diverse retailers may signal a resurgence of interest in non-traditional retail spaces, which could enhance tenant mix and foot traffic.",
+        "data_evidence": "The San Francisco Centre recently signed leases with new tenants like a toy store and a pet shop, indicating a change in consumer interests.",
+        "why_it_matters": "This is positive for you as tenant because this trend towards smaller businesses can improve the competitive landscape and increase overall mall traffic, supporting your case for maintaining or negotiating favorable lease terms.",
+        "baseline_pct": 50,
+        "current_trend_pct": 60,
+        "source_url": "https://therealdeal.com/san-francisco/2024/06/17/san-francisco-centre-mall-signs-leases-for-five-stores-and-two-nonprofits/"
+      },
+      {
+        "title": "NOI Impact Decline",
+        "impact": "negative",
+        "confidence_score": 80,
+        "source": "CBS News",
+        "insight": "Westfield San Francisco Centre's NOI has significantly declined due to major tenant closures and changing market conditions.",
+        "data_evidence": "Mall sold at auction for approximately $133 million, down from $1.2 billion valuation; NOI dropped sharply after tenant exits.",
+        "why_it_matters": "This is negative because it signifies financial instability for the landlord, which could put pressure on them to justify or reduce asking rents to maintain occupancy. You can leverage this to question high rent expectations as the financial health of the property diminishes.",
+        "baseline_pct": 100,
+        "current_trend_pct": 30,
+        "source_url": "https://www.cbsnews.com/sanfrancisco/news/san-francisco-centre-mall-sold-at-auction-for-about-133-million/"
+      },
+      {
+        "title": "Occupancy Rates Dropping",
+        "impact": "negative",
+        "confidence_score": 85,
+        "source": "KRON4",
+        "insight": "The occupancy level at Westfield San Francisco Centre has decreased dramatically to about 55%, indicating a struggling retail environment.",
+        "data_evidence": "Occupancy level has dropped to approximately 55%, impacted by closures like Nordstrom and Banana Republic.",
+        "why_it_matters": "This finding is negative for you as a tenant as it reinforces the landlord's weakening ability to maintain rent levels due to high vacancy; you can argue for lower rent based on this occupancy data.",
+        "baseline_pct": 100,
+        "current_trend_pct": 55,
+        "source_url": "https://www.kron4.com/news/bay-area/westfield-pulling-out-of-downtown-san-francisco/"
+      }
+    ]
   }
 }
