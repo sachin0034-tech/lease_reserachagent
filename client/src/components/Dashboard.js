@@ -313,6 +313,13 @@ function SettingsModal({ open, onClose, onSave }) {
   }, [open]);
 
   useEffect(() => {
+    if (!open) {
+      setLlmProviderModalOpen(false);
+      setLlmProviderModalMessage('');
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (!categoryDropdownOpen) return;
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setCategoryDropdownOpen(false);
@@ -340,6 +347,11 @@ function SettingsModal({ open, onClose, onSave }) {
   };
 
   const handleSaveChanges = () => {
+    try {
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem('lg_llm_provider', openaiEnabled ? 'openai' : 'anthropic');
+      }
+    } catch (_) {}
     onSave?.();
     onClose();
   };
@@ -402,6 +414,18 @@ function SettingsModal({ open, onClose, onSave }) {
               </div>
             </div>
           </div>
+        </section>
+
+        <section className="dashboard-settings-modal__section">
+          <h3 className="dashboard-settings-modal__section-title">LLM Provider</h3>
+          <p className="dashboard-settings-modal__label">
+            Current: <strong>{openaiEnabled ? 'OpenAI' : 'Anthropic'}</strong> (OpenAI: {openaiEnabled ? 'On' : 'Off'}, Anthropic: {anthropicEnabled ? 'On' : 'Off'}). Stored preference is applied when you open this modal; Save persists it.
+          </p>
+          {llmProviderModalOpen && (
+            <p role="alert" className="dashboard-settings-modal__alert">
+              {llmProviderModalMessage}
+            </p>
+          )}
         </section>
 
         <section className="dashboard-settings-modal__section">
