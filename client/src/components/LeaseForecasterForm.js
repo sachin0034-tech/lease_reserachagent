@@ -127,12 +127,24 @@ export default function LeaseForecasterForm() {
 
       const response = await fetch(`${API_BASE}/api/analyze/start`, {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 
       if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(errText || response.statusText);
+        let errMessage = response.statusText;
+        try {
+          const errText = await response.text();
+          if (errText) {
+            try {
+              const errJson = JSON.parse(errText);
+              errMessage = errJson.detail ? (Array.isArray(errJson.detail) ? errJson.detail.map((d) => d.msg || JSON.stringify(d)).join(', ') : String(errJson.detail)) : errText;
+            } catch (_) {
+              errMessage = errText;
+            }
+          }
+        } catch (_) {}
+        throw new Error(`Analysis start failed (${response.status}): ${errMessage}`);
       }
       const data = await response.json();
       const sessionId = data.session_id;

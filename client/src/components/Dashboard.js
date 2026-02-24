@@ -520,7 +520,9 @@ export default function Dashboard() {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`);
+        const res = await fetch(`${apiBase}/api/analyze/dashboard?session_id=${encodeURIComponent(sessionId)}`, {
+          credentials: 'include',
+        });
         if (cancelled) return;
         if (res.status === 404) {
           setRestoredData({ session_found: false, property: {}, dashboard_summary: null, cards: [] });
@@ -599,6 +601,7 @@ export default function Dashboard() {
       }
       const res = await fetch(`${API_BASE}/api/analyze/chat`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           session_id: effectiveSessionId,

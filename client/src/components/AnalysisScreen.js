@@ -94,7 +94,9 @@ export default function AnalysisScreen() {
     addStep('info', 'Connecting to your research…');
 
     try {
-      const res = await fetch(`${API_BASE}/api/analyze/stream?session_id=${encodeURIComponent(sessionId)}`);
+      const res = await fetch(`${API_BASE}/api/analyze/stream?session_id=${encodeURIComponent(sessionId)}`, {
+        credentials: 'include',
+      });
       if (!res.ok) {
         throw new Error(res.statusText || 'Stream failed');
       }

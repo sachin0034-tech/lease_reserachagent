@@ -2,17 +2,16 @@ import asyncio
 import json
 import logging
 import uuid
-from pathlib import Path
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from app.core.config import BACKEND_ROOT
 from app.schemas.insight_card import CARD_TOPICS
 from app.services.file_extract import extract_text_from_file
 from app.services.openai_summary import summarize_with_openai
 from app.services.research_agent import answer_chat, get_dashboard_summary, run_card_batch
+from app.services.session_store import SessionStore
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["analyze"])
@@ -20,37 +19,8 @@ router = APIRouter(prefix="/api", tags=["analyze"])
 # In-memory store for the latest submission (for debugging / step-by-step flow)
 _latest_analyze_payload: dict | None = None
 
-# Session store for streaming analysis: session_id -> context for LLM (persisted to file)
-_sessions: dict[str, dict] = {}
-_SESSIONS_FILE = BACKEND_ROOT / "data" / "sessions.json"
-
-
-def _load_sessions() -> None:
-    """Load sessions from disk so they survive server restarts."""
-    global _sessions
-    if not _SESSIONS_FILE.exists():
-        return
-    try:
-        raw = _SESSIONS_FILE.read_text(encoding="utf-8")
-        data = json.loads(raw)
-        if isinstance(data, dict):
-            _sessions.update(data)
-            logger.info("[sessions] Loaded %s sessions from %s", len(_sessions), _SESSIONS_FILE)
-    except Exception as e:
-        logger.warning("[sessions] Could not load sessions from %s: %s", _SESSIONS_FILE, e)
-
-
-def _save_sessions() -> None:
-    """Persist sessions to disk."""
-    try:
-        _SESSIONS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        _SESSIONS_FILE.write_text(json.dumps(_sessions, indent=2), encoding="utf-8")
-    except Exception as e:
-        logger.warning("[sessions] Could not save sessions to %s: %s", _SESSIONS_FILE, e)
-
-
-# Load persisted sessions on module load
-_load_sessions()
+# Shared session store (SQLite under $HOME by default; safe across workers on same instance)
+_session_store = SessionStore.from_env()
 
 BATCH_SIZE = 5
 
@@ -153,7 +123,6 @@ async def analyze_start(
     Step 1: Submit form + either document_text (paste) or files. Backend uses text or extracts
     from files to build document_context, stores in session. Returns session_id.
     """
-    global _sessions
     session_id = str(uuid.uuid4())
     provider_normalized = (llm_provider or "openai").strip().lower()
     if provider_normalized not in {"openai", "anthropic"}:
@@ -177,7 +146,7 @@ async def analyze_start(
             document_context = "\n\n".join(combined_text_parts)
             logger.info("[analyze/start] Document context from files: %s chars", len(document_context))
 
-    _sessions[session_id] = {
+    session_data = {
         "analyze_as": analyze_as,
         "property_name": property_name,
         "address": address,
@@ -186,18 +155,17 @@ async def analyze_start(
         "document_context": document_context,
         "llm_provider": provider_normalized,
     }
+    _session_store.put(session_id, session_data)
     logger.info(
-        "[analyze/start] Session stored. Total sessions=%s llm_provider=%s",
-        len(_sessions),
+        "[analyze/start] Session stored. llm_provider=%s",
         provider_normalized,
     )
-    _save_sessions()
     return {"ok": True, "session_id": session_id}
 
 
 async def _stream_analysis(session_id: str):
     """Generator: yield ndjson lines (progress + cards_batch + dashboard + done)."""
-    session = _sessions.get(session_id)
+    session = _session_store.get(session_id)
     if not session:
         yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
         return
@@ -219,7 +187,7 @@ async def _stream_analysis(session_id: str):
         logger.debug("[analyze/stream] Batch %s: %s", batch_index, batch_topics)
 
         # Use streaming version for real-time progress
-        from app.services.research_agent import AnthropicCreditsError, run_card_batch_streaming
+        from app.services.research_agent import run_card_batch_streaming
 
         cards, progress_messages = await run_card_batch_streaming(
             analyze_as=ctx["analyze_as"],
@@ -258,9 +226,7 @@ async def _stream_analysis(session_id: str):
         cards=all_cards,
         llm_provider=ctx.get("llm_provider", "openai"),
     )
-    session["dashboard_summary"] = dashboard_data
-    session["cards"] = all_cards
-    _save_sessions()
+    _session_store.patch(session_id, {"dashboard_summary": dashboard_data, "cards": all_cards})
     payload = {
         **dashboard_data,
         "property": {
@@ -292,7 +258,7 @@ async def analyze_stream(session_id: str):
 @router.get("/analyze/dashboard")
 def get_analyze_dashboard(session_id: str):
     """Return stored dashboard summary + property + cards for the final dashboard page."""
-    session = _sessions.get(session_id)
+    session = _session_store.get(session_id)
     if not session:
         raise HTTPException(status_code=404, detail="Session not found")
     return {
@@ -320,7 +286,7 @@ def analyze_chat(body: ChatRequest):
     Chat with the Research Agent. Uses full session context (property, documents, dashboard, cards).
     Returns a concise, to-the-point reply from the configured LLM provider and model.
     """
-    session = _sessions.get(body.session_id)
+    session = _session_store.get(body.session_id)
     if not session:
         # Instead of 404, return a friendly message so the UI doesn't break when sessions expire
         return {
@@ -336,13 +302,12 @@ def analyze_chat(body: ChatRequest):
         provider_normalized = body.llm_provider.strip().lower()
         if provider_normalized not in {"openai", "anthropic"}:
             provider_normalized = "openai"
-        session["llm_provider"] = provider_normalized
-        _save_sessions()
+        _session_store.patch(body.session_id, {"llm_provider": provider_normalized})
     logger.info(
         "[analyze/chat] session_id=%s message_len=%s llm_provider=%s",
         body.session_id,
         len(message),
-        session.get("llm_provider", "openai"),
+        (body.llm_provider or session.get("llm_provider", "openai")),
     )
     reply = answer_chat(session, message)
     return {"reply": reply}
