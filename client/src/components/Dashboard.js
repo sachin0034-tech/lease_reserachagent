@@ -312,6 +312,14 @@ function SettingsModal({ open, onClose, onSave }) {
     }
   }, [open]);
 
+  // Clear provider sub-modal when settings modal closes
+  useEffect(() => {
+    if (!open) {
+      setLlmProviderModalOpen(false);
+      setLlmProviderModalMessage('');
+    }
+  }, [open]);
+
   useEffect(() => {
     if (!categoryDropdownOpen) return;
     const handleClickOutside = (e) => {
