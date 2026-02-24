@@ -219,7 +219,7 @@ async def _stream_analysis(session_id: str):
         logger.debug("[analyze/stream] Batch %s: %s", batch_index, batch_topics)
 
         # Use streaming version for real-time progress
-        from app.services.research_agent import run_card_batch_streaming
+        from app.services.research_agent import AnthropicCreditsError, run_card_batch_streaming
 
         cards, progress_messages = await run_card_batch_streaming(
             analyze_as=ctx["analyze_as"],

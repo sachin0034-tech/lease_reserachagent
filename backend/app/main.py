@@ -35,16 +35,6 @@ app.add_middleware(
 app.include_router(analyze_router)
 
 
-@app.get("/")
-def root():
-    return {
-        "message": "LegalGraph AI Research Agent API",
-        "docs": "/docs",
-        "health": "/health",
-        "api": "/api",
-    }
-
-
 @app.get("/health")
 def health():
     return {"status": "ok"}

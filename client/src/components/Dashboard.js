@@ -313,13 +313,6 @@ function SettingsModal({ open, onClose, onSave }) {
   }, [open]);
 
   useEffect(() => {
-    if (!open) {
-      setLlmProviderModalOpen(false);
-      setLlmProviderModalMessage('');
-    }
-  }, [open]);
-
-  useEffect(() => {
     if (!categoryDropdownOpen) return;
     const handleClickOutside = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) setCategoryDropdownOpen(false);

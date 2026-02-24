@@ -57,9 +57,6 @@ You don’t need to change code for this guide.
 ### 4. Connect GitHub for automatic deployment
 
 1. In the Web App’s page, in the left menu, click **Deployment Center**.
-**If you see "SCM basic authentication is disabled for your app" with "Enable here":** Turn on SCM basic auth so GitHub Actions can deploy. Click **Enable here**, or go to **Configuration** → **General settings** → under **Platform settings** set **SCM basic auth publishing credentials** (or **Basic Auth**) to **On**, then **Save**. Return to Deployment Center and continue.
-
-1. In the Web App's page, in the left menu, click **Deployment Center**.
 2. Under **Source**, choose **GitHub**.
 3. If asked, **Authorize Azure** to access your GitHub account.
 4. Select:
@@ -67,15 +64,10 @@ You don’t need to change code for this guide.
    - **Repository**: the repo containing this project.
    - **Branch**: e.g. `main`.
 5. For **Build provider**, pick **GitHub Actions** (recommended).
-6. **Workflow option**: select **"Add a workflow"** so Azure creates a new workflow file (e.g. `main_<yourapp>-backend.yml`) in your repo. Do *not* choose "Use available workflow" unless you already have one for this app.
-7. **Authentication settings**: select **Basic authentication**. You do *not* need a User-assigned identity; Basic auth uses a publish profile in GitHub secrets. If you pick "User-assigned identity" you must create and select an identity in Azure first—Basic is simpler.
-8. Click **Save** or **Finish** (Azure will create the workflow and start the first deployment).
-9. Azure will start a first deployment automatically. You can:
+6. Click **Save** or **Finish** (Azure will create a GitHub Actions workflow).
+7. Azure will start a first deployment automatically. You can:
    - See progress in **Deployment Center → Logs**.
    - Or on GitHub under **Actions** for the repo.
-
-**If Azure shows a React/Node build instead of Python:**  
-The repo has both `client/` (React) and `backend/` (Python). The GitHub Actions workflow in this project is set to deploy **only the `backend/` folder**, so Azure receives Python code and runs a Python build. If you created the Web App before that change, re-run the workflow (push a commit or use **Actions → Run workflow**). In the Azure Portal you do **not** set app location to `./client` — the backend runs from the root of what is deployed (the `backend` folder contents).
 
 ---
 
@@ -98,16 +90,11 @@ The repo has both `client/` (React) and `backend/` (Python). The GitHub Actions 
 2. Find **Startup Command** (Linux only).
 3. Set this value:
 
-   `gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app --bind 0.0.0.0:${PORT:-8000}`
-
-   (Using `${PORT:-8000}` makes the app listen on Azure’s PORT when set; otherwise 8000.)
+   `gunicorn -w 4 -k uvicorn.workers.UvicornWorker app.main:app`
 
 4. Click **Save**. Azure will restart the app with this command.
 
 This tells Azure to run your FastAPI app from `backend/app/main.py`.
-
-**If logs show "No framework detected; using default app from /opt/defaultsite" or gunicorn for `application:app`:**  
-Azure is running the placeholder app instead of yours. You **must** set **Startup Command** (above) in **Configuration → General settings**. Without it, Oryx auto-detection fails and the default app runs. After saving the startup command, restart the app and redeploy if needed.
 
 ---
 
