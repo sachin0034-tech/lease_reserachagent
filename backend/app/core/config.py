@@ -56,3 +56,19 @@ _raw_tavily = os.environ.get("TAVILY_API_KEY")
 TAVILY_API_KEY = (_raw_tavily or "").strip().strip("'\"").strip() or None
 if not TAVILY_API_KEY:
     TAVILY_API_KEY = _read_key_from_env_file("TAVILY_API_KEY")
+
+
+# --- Supabase configuration (for login/allowlist checks) ---
+_raw_supabase_url = os.environ.get("SUPABASE_URL")
+SUPABASE_URL = (_raw_supabase_url or "").strip().strip("'\"") or None
+if not SUPABASE_URL:
+    SUPABASE_URL = _read_key_from_env_file("SUPABASE_URL")
+
+_raw_supabase_service_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
+SUPABASE_SERVICE_ROLE_KEY = (_raw_supabase_service_key or "").strip().strip("'\"") or None
+if not SUPABASE_SERVICE_ROLE_KEY:
+    SUPABASE_SERVICE_ROLE_KEY = _read_key_from_env_file("SUPABASE_SERVICE_ROLE_KEY")
+
+SUPABASE_ALLOWED_USERS_TABLE = (
+    os.environ.get("SUPABASE_ALLOWED_USERS_TABLE") or _read_key_from_env_file("SUPABASE_ALLOWED_USERS_TABLE") or "allowed_users"
+).strip()

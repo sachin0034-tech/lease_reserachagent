@@ -10,8 +10,20 @@ from pydantic import BaseModel
 from app.schemas.insight_card import CARD_TOPICS
 from app.services.file_extract import extract_text_from_file
 from app.services.openai_summary import summarize_with_openai
-from app.services.research_agent import answer_chat, get_dashboard_summary, run_card_batch
+from app.services.research_agent import (
+    answer_chat,
+    create_custom_card_from_topic,
+    edit_insight_card_with_llm,
+    get_dashboard_summary,
+    run_card_batch,
+)
 from app.services.session_store import SessionStore
+from app.services.supabase_access import (
+    SupabaseNotConfiguredError,
+    decrement_user_credits,
+    get_user_credits,
+    is_user_allowed,
+)
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["analyze"])
@@ -118,6 +130,7 @@ async def analyze_start(
     document_text: str | None = Form(default=None),
     files: list[UploadFile] = File(default=[]),
     llm_provider: str = Form(default="openai"),
+    username: str | None = Form(default=None),
 ):
     """
     Step 1: Submit form + either document_text (paste) or files. Backend uses text or extracts
@@ -128,6 +141,30 @@ async def analyze_start(
     if provider_normalized not in {"openai", "anthropic"}:
         provider_normalized = "openai"
     logger.info("[analyze/start] New session_id=%s role=%s property=%s", session_id, analyze_as, property_name)
+
+    username_normalized = (username or "").strip()
+    if username_normalized:
+        try:
+            if not is_user_allowed(username_normalized):
+                raise HTTPException(
+                    status_code=403,
+                    detail="You don't have access yet. Please request access before logging in.",
+                )
+            current_credits = get_user_credits(username_normalized)
+            if current_credits is not None:
+                if current_credits < 2:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Your credits are exhausted. Please contact the team for more credits.",
+                    )
+                remaining = decrement_user_credits(username_normalized, 2)
+                logger.info(
+                    "[analyze/start] Deducted 2 credits for %s (remaining=%s)",
+                    username_normalized,
+                    remaining,
+                )
+        except SupabaseNotConfiguredError:
+            logger.warning("[analyze/start] Supabase not configured; skipping credit checks.")
 
     document_context = None
     if document_text and document_text.strip():
@@ -154,6 +191,7 @@ async def analyze_start(
         "current_base_rent": current_base_rent,
         "document_context": document_context,
         "llm_provider": provider_normalized,
+        "username": username_normalized if username_normalized else None,
     }
     _session_store.put(session_id, session_data)
     logger.info(
@@ -280,6 +318,27 @@ class ChatRequest(BaseModel):
     llm_model: str | None = None
 
 
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+
+class CreditsResponse(BaseModel):
+    username: str
+    credits: int | None
+
+
+class CustomCardCreateRequest(BaseModel):
+    session_id: str
+    prompt: str
+
+
+class CustomCardEditRequest(BaseModel):
+    session_id: str
+    prompt: str
+    source: str  # "validation" or "custom"
+
+
 @router.post("/analyze/chat")
 def analyze_chat(body: ChatRequest):
     """
@@ -311,3 +370,386 @@ def analyze_chat(body: ChatRequest):
     )
     reply = answer_chat(session, message)
     return {"reply": reply}
+
+
+@router.post("/login")
+def login(body: LoginRequest):
+    """
+    Basic login gate backed by Supabase.
+
+    - Checks whether the given username exists in the configured Supabase table.
+    - If the user is not present, returns 403 so the frontend can show a toast
+      asking them to request access.
+    - Password is accepted but not yet validated against Supabase auth; add
+      real password / SSO verification here when ready.
+    """
+    username = (body.username or "").strip()
+    password = (body.password or "").strip()
+
+    if not username or not password:
+        raise HTTPException(status_code=400, detail="username and password are required")
+
+    try:
+        allowed = is_user_allowed(username)
+    except SupabaseNotConfiguredError as exc:
+        logger.error("Supabase not configured; rejecting login attempt for %s", username)
+        raise HTTPException(
+            status_code=503,
+            detail="Login is temporarily unavailable; please contact the team to configure access.",
+        ) from exc
+
+    if not allowed:
+        raise HTTPException(
+            status_code=403,
+            detail="You don't have access yet. Please request access before logging in.",
+        )
+
+    # At this stage, we only gate on presence in Supabase; real auth can be added later.
+    return {"ok": True}
+
+
+@router.get("/user/credits", response_model=CreditsResponse)
+def get_user_credits_api(username: str):
+    """
+    Return the current credit balance for the given username.
+    """
+    username_normalized = (username or "").strip()
+    if not username_normalized:
+        raise HTTPException(status_code=400, detail="username is required")
+    try:
+        allowed = is_user_allowed(username_normalized)
+    except SupabaseNotConfiguredError as exc:
+        logger.error("Supabase not configured; cannot fetch credits for %s", username_normalized)
+        raise HTTPException(
+            status_code=503,
+            detail="Credits are temporarily unavailable; please contact the team.",
+        ) from exc
+    if not allowed:
+        raise HTTPException(status_code=403, detail="User does not have access.")
+    credits = get_user_credits(username_normalized)
+    return CreditsResponse(username=username_normalized, credits=credits)
+
+
+@router.get("/custom-cards")
+def get_custom_cards(session_id: str):
+    """
+    Return all custom cards stored for a session.
+    """
+    session = _session_store.get(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    return {"cards": session.get("custom_cards", [])}
+
+
+@router.post("/custom-cards")
+def create_custom_card(body: CustomCardCreateRequest):
+    """
+    Create a new custom insight card for the given session and user prompt.
+    """
+    session = _session_store.get(body.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    prompt = (body.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+
+    try:
+        card = create_custom_card_from_topic(session, prompt)
+    except Exception as exc:
+        logger.warning("[custom-cards] Error creating custom card: %s", exc)
+        raise HTTPException(status_code=500, detail="Failed to create custom card") from exc
+
+    existing = session.get("custom_cards") or []
+    if not isinstance(existing, list):
+        existing = []
+    existing.append(card)
+    _session_store.patch(body.session_id, {"custom_cards": existing})
+    index = len(existing) - 1
+    return {"card": card, "index": index}
+
+
+async def _stream_custom_card(session_id: str, prompt: str):
+    """
+    Generator: starts the LLM call in a background thread, then streams
+    rolling progress messages every ~3 s so the frontend animation stays
+    alive for the full duration of the LLM call (~20-40 s).
+    """
+    session = _session_store.get(session_id)
+    if not session:
+        yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
+        return
+
+    # Kick off the LLM in a background thread immediately
+    llm_task = asyncio.create_task(
+        asyncio.to_thread(create_custom_card_from_topic, session, prompt)
+    )
+
+    # Rolling progress messages — cycled until the LLM finishes
+    thinking_steps = [
+        "Reviewing lease context and property details…",
+        "Searching for comparable market data…",
+        "Querying recent transaction comps…",
+        "Analyzing vacancy and demand trends…",
+        "Cross-referencing benchmark figures…",
+        "Evaluating negotiation leverage signals…",
+        "Structuring insight card fields…",
+        "Validating data evidence…",
+        "Finalising card content…",
+    ]
+    step_index = 0
+
+    # Stream a progress tick every 3 s while LLM is running
+    while not llm_task.done():
+        msg = thinking_steps[step_index % len(thinking_steps)]
+        yield json.dumps({"type": "progress", "message": msg}) + "\n"
+        step_index += 1
+        # Wait up to 3 s, but bail early if task finishes
+        try:
+            await asyncio.wait_for(asyncio.shield(llm_task), timeout=3.0)
+            break  # task completed within this window
+        except asyncio.TimeoutError:
+            pass  # still running — loop and emit next progress line
+        except Exception:
+            break  # real error — handled below
+
+    # Collect result
+    try:
+        card = await llm_task
+    except Exception as exc:
+        logger.warning("[custom-cards/stream] Error: %s", exc)
+        yield json.dumps({"type": "error", "message": "Failed to create custom card"}) + "\n"
+        return
+
+    existing = session.get("custom_cards") or []
+    if not isinstance(existing, list):
+        existing = []
+    existing.append(card)
+    _session_store.patch(session_id, {"custom_cards": existing})
+    index = len(existing) - 1
+
+    yield json.dumps({"type": "done", "card": card, "index": index}) + "\n"
+
+
+@router.post("/custom-cards/stream")
+async def create_custom_card_stream(body: CustomCardCreateRequest):
+    """
+    Streaming version of custom card creation.
+    Yields ndjson: progress messages then a final done event with the card.
+    Deducts 1 credit from the user's balance.
+    """
+    session = _session_store.get(body.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    prompt = (body.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+
+    # Deduct 1 credit for creating a custom card
+    username = session.get("username")
+    if username:
+        try:
+            current_credits = get_user_credits(username)
+            if current_credits is not None:
+                if current_credits < 1:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Insufficient credits. You need at least 1 credit to create a custom card.",
+                    )
+                remaining = decrement_user_credits(username, 1)
+                logger.info(
+                    "[custom-cards/stream] Deducted 1 credit for %s (remaining=%s)",
+                    username,
+                    remaining,
+                )
+        except SupabaseNotConfiguredError:
+            logger.warning("[custom-cards/stream] Supabase not configured; skipping credit checks.")
+
+    return StreamingResponse(
+        _stream_custom_card(body.session_id, prompt),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+@router.post("/custom-cards/{card_index}/edit")
+def edit_custom_card(card_index: int, body: CustomCardEditRequest):
+    """
+    Edit an existing insight card (validation or custom) using an LLM.
+    """
+    session = _session_store.get(body.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    prompt = (body.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+
+    source = (body.source or "").strip().lower()
+    if source not in {"validation", "custom"}:
+        raise HTTPException(status_code=400, detail="source must be 'validation' or 'custom'")
+
+    key = "cards" if source == "validation" else "custom_cards"
+    cards_list = session.get(key) or []
+    if not isinstance(cards_list, list) or not (0 <= card_index < len(cards_list)):
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    original = cards_list[card_index]
+    try:
+        updated = edit_insight_card_with_llm(session, original, prompt)
+    except Exception as exc:
+        logger.warning("[custom-cards] Error editing card at index %s: %s", card_index, exc)
+        raise HTTPException(status_code=500, detail="Failed to edit card") from exc
+
+    cards_list[card_index] = updated
+    _session_store.patch(body.session_id, {key: cards_list})
+    return {"card": updated, "index": card_index, "source": source}
+
+
+async def _stream_edit_card(session_id: str, card_index: int, prompt: str, source: str):
+    """
+    Streaming generator for card editing — keeps animation alive while LLM runs.
+    Yields ndjson: progress events, then a final done event with old + new card.
+    NOTE: does NOT persist the updated card — the frontend shows a diff and the
+    user must confirm before the card is saved (via a separate confirm call).
+    """
+    session = _session_store.get(session_id)
+    if not session:
+        yield json.dumps({"type": "error", "message": "Session not found"}) + "\n"
+        return
+
+    key = "cards" if source == "validation" else "custom_cards"
+    cards_list = session.get(key) or []
+    if not isinstance(cards_list, list) or not (0 <= card_index < len(cards_list)):
+        yield json.dumps({"type": "error", "message": "Card not found"}) + "\n"
+        return
+
+    original = cards_list[card_index]
+
+    llm_task = asyncio.create_task(
+        asyncio.to_thread(edit_insight_card_with_llm, session, original, prompt)
+    )
+
+    thinking_steps = [
+        "Reading original card context…",
+        "Analysing your refinement request…",
+        "Searching for supporting market data…",
+        "Cross-referencing lease benchmarks…",
+        "Drafting updated insight…",
+        "Revising data evidence…",
+        "Updating negotiation context…",
+        "Recalculating confidence score…",
+        "Finalising revised card…",
+    ]
+    step_index = 0
+
+    while not llm_task.done():
+        msg = thinking_steps[step_index % len(thinking_steps)]
+        yield json.dumps({"type": "progress", "message": msg}) + "\n"
+        step_index += 1
+        try:
+            await asyncio.wait_for(asyncio.shield(llm_task), timeout=3.0)
+            break
+        except asyncio.TimeoutError:
+            pass
+        except Exception:
+            break
+
+    try:
+        updated = await llm_task
+    except Exception as exc:
+        logger.warning("[edit/stream] Error editing card %s: %s", card_index, exc)
+        yield json.dumps({"type": "error", "message": "Failed to update card"}) + "\n"
+        return
+
+    # Return both cards for the diff view — do NOT persist yet
+    yield json.dumps({
+        "type": "done",
+        "original": original,
+        "updated": updated,
+        "index": card_index,
+        "source": source,
+    }) + "\n"
+
+
+@router.post("/custom-cards/{card_index}/edit/stream")
+async def edit_custom_card_stream(card_index: int, body: CustomCardEditRequest):
+    """
+    Streaming edit: yields progress messages then a done event with old + new card.
+    The client shows a diff and must POST to /confirm to actually save.
+    """
+    session = _session_store.get(body.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    prompt = (body.prompt or "").strip()
+    if not prompt:
+        raise HTTPException(status_code=400, detail="prompt is required")
+    source = (body.source or "").strip().lower()
+    if source not in {"validation", "custom"}:
+        raise HTTPException(status_code=400, detail="source must be 'validation' or 'custom'")
+
+    return StreamingResponse(
+        _stream_edit_card(body.session_id, card_index, prompt, source),
+        media_type="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
+class CardConfirmRequest(BaseModel):
+    session_id: str
+    source: str  # "validation" or "custom"
+    updated_card: dict
+
+
+@router.post("/custom-cards/{card_index}/confirm")
+def confirm_card_edit(card_index: int, body: CardConfirmRequest):
+    """
+    Persist the updated card after the user confirms the diff view.
+    Deducts 1 credit from the user's balance.
+    """
+    session = _session_store.get(body.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+    source = (body.source or "").strip().lower()
+    if source not in {"validation", "custom"}:
+        raise HTTPException(status_code=400, detail="source must be 'validation' or 'custom'")
+
+    # Deduct 1 credit for editing a card
+    username = session.get("username")
+    if username:
+        try:
+            current_credits = get_user_credits(username)
+            if current_credits is not None:
+                if current_credits < 1:
+                    raise HTTPException(
+                        status_code=403,
+                        detail="Insufficient credits. You need at least 1 credit to edit a card.",
+                    )
+                remaining = decrement_user_credits(username, 1)
+                logger.info(
+                    "[confirm_card_edit] Deducted 1 credit for %s editing %s card (remaining=%s)",
+                    username,
+                    source,
+                    remaining,
+                )
+        except SupabaseNotConfiguredError:
+            logger.warning("[confirm_card_edit] Supabase not configured; skipping credit checks.")
+
+    key = "cards" if source == "validation" else "custom_cards"
+    cards_list = session.get(key) or []
+    if not isinstance(cards_list, list) or not (0 <= card_index < len(cards_list)):
+        raise HTTPException(status_code=404, detail="Card not found")
+
+    logger.info(
+        "[confirm_card_edit] Updating %s card at index %d for session %s. source_url: %s",
+        source,
+        card_index,
+        body.session_id[:8],
+        body.updated_card.get("source_url"),
+    )
+    cards_list[card_index] = body.updated_card
+    _session_store.patch(body.session_id, {key: cards_list})
+    return {
+        "ok": True,
+        "index": card_index,
+        "source": source,
+        "updated_card": body.updated_card,
+    }

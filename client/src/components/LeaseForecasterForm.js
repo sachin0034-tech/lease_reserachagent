@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { SettingsModal } from './Dashboard';
 import './LeaseForecasterForm.css';
@@ -66,8 +66,40 @@ export default function LeaseForecasterForm() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [summaryContext, setSummaryContext] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
+  const [credits, setCredits] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
+  // Fetch credits for the logged-in user (if any) to show in header
+  useEffect(() => {
+    let username = '';
+    try {
+      if (typeof window !== 'undefined') {
+        username = window.localStorage.getItem('lg_username') || '';
+      }
+    } catch {
+      username = '';
+    }
+    if (!username) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/user/credits?username=${encodeURIComponent(username)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && typeof data.credits === 'number') {
+          setCredits(data.credits);
+        }
+      } catch {
+        // ignore credit fetch errors
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [API_BASE]);
 
   const handleFileChange = (e) => {
     const selected = Array.from(e.target.files || []);
@@ -112,6 +144,16 @@ export default function LeaseForecasterForm() {
         // ignore storage errors, default stays openai
       }
       formData.append('llm_provider', llmProvider);
+      try {
+        if (typeof window !== 'undefined') {
+          const username = window.localStorage.getItem('lg_username');
+          if (username && username.trim()) {
+            formData.append('username', username.trim());
+          }
+        }
+      } catch {
+        // ignore storage errors
+      }
       if (inputMode === 'text' && documentText.trim()) {
         formData.append('document_text', documentText.trim());
       } else if (inputMode === 'file' && files.length > 0) {
@@ -144,6 +186,8 @@ export default function LeaseForecasterForm() {
       console.debug('[LeaseForecasterForm] analyze/start response', data);
       if (sessionId) {
         console.debug('[LeaseForecasterForm] Navigating to /analyze?session_id=', sessionId);
+        // Optimistically decrement credits in the UI if we know they're tracked
+        setCredits((prev) => (typeof prev === 'number' ? Math.max(0, prev - 2) : prev));
         navigate(`/analyze?session_id=${encodeURIComponent(sessionId)}`);
       } else {
         setSubmitError('No session_id returned');
@@ -163,6 +207,21 @@ export default function LeaseForecasterForm() {
           <span className="app-name">LegalGraph.AI</span>
         </div>
         <div className="header-right">
+          {typeof credits === 'number' && (
+            <div className="credits-pill" title="Remaining analysis credits">
+              <span className="credits-pill__label">Credits</span>
+              <div className="credits-pill__bar">
+                <div
+                  className="credits-pill__fill"
+                  style={{ width: `${Math.max(0, Math.min(100, (credits / 20) * 100))}%` }}
+                />
+              </div>
+              <span className="credits-pill__value">
+                {credits}
+                /20
+              </span>
+            </div>
+          )}
           <button type="button" className="header-btn settings-btn" onClick={() => setSettingsModalOpen(true)} aria-label="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />

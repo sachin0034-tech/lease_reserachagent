@@ -1,0 +1,318 @@
+INFO:     Will watch for changes in these directories: ['/Users/sachin/Documents/lease_reserachagent/backend']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [64688] using WatchFiles
+INFO:     Started server process [64697]
+INFO:     Waiting for application startup.
+2026-02-26 15:06:39 [INFO] app.main: Backend started – POST /api/analyze, GET /api/analyze/latest
+2026-02-26 15:06:39 [INFO] app.main: Looking for .env at: /Users/sachin/Documents/lease_reserachagent/backend/.env (exists=True)
+2026-02-26 15:06:39 [INFO] app.main: OPENAI_API_KEY is set (length=164). Research agent can use OpenAI.
+2026-02-26 15:06:39 [INFO] app.main: ANTHROPIC_API_KEY is set (length=108). Research agent can use Anthropic Claude SDK.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:59219 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59457 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59464 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/custom-cards?session_id=e9a298a9-e180-4cac-a6ec-dd2e9c63f7a7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59502 - "GET /api/analyze/dashboard?session_id=e9a298a9-e180-4cac-a6ec-dd2e9c63f7a7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59506 - "GET /api/custom-cards?session_id=e9a298a9-e180-4cac-a6ec-dd2e9c63f7a7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/analyze/dashboard?session_id=e9a298a9-e180-4cac-a6ec-dd2e9c63f7a7 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59504 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59560 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59560 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59560 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59560 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59503 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59760 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59771 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59771 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59760 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+WARNING:  WatchFiles detected changes in 'app/services/email_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [64697]
+WARNING:  WatchFiles detected changes in 'app/services/email_service.py'. Reloading...
+INFO:     Started server process [65806]
+INFO:     Waiting for application startup.
+2026-02-26 15:15:26 [INFO] app.main: Backend started – POST /api/analyze, GET /api/analyze/latest
+2026-02-26 15:15:26 [INFO] app.main: Looking for .env at: /Users/sachin/Documents/lease_reserachagent/backend/.env (exists=True)
+2026-02-26 15:15:26 [INFO] app.main: OPENAI_API_KEY is set (length=164). Research agent can use OpenAI.
+2026-02-26 15:15:26 [INFO] app.main: ANTHROPIC_API_KEY is set (length=108). Research agent can use Anthropic Claude SDK.
+INFO:     Application startup complete.
+INFO:     Started server process [65811]
+INFO:     Waiting for application startup.
+2026-02-26 15:15:27 [INFO] app.main: Backend started – POST /api/analyze, GET /api/analyze/latest
+2026-02-26 15:15:27 [INFO] app.main: Looking for .env at: /Users/sachin/Documents/lease_reserachagent/backend/.env (exists=True)
+2026-02-26 15:15:27 [INFO] app.main: OPENAI_API_KEY is set (length=164). Research agent can use OpenAI.
+2026-02-26 15:15:27 [INFO] app.main: ANTHROPIC_API_KEY is set (length=108). Research agent can use Anthropic Claude SDK.
+INFO:     Application startup complete.
+WARNING:  WatchFiles detected changes in 'app/services/email_service.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [65811]
+INFO:     Started server process [65814]
+INFO:     Waiting for application startup.
+2026-02-26 15:15:31 [INFO] app.main: Backend started – POST /api/analyze, GET /api/analyze/latest
+2026-02-26 15:15:31 [INFO] app.main: Looking for .env at: /Users/sachin/Documents/lease_reserachagent/backend/.env (exists=True)
+2026-02-26 15:15:31 [INFO] app.main: OPENAI_API_KEY is set (length=164). Research agent can use OpenAI.
+2026-02-26 15:15:31 [INFO] app.main: ANTHROPIC_API_KEY is set (length=108). Research agent can use Anthropic Claude SDK.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:55687 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55702 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56816 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56827 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58348 - "OPTIONS /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58349 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58349 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58367 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+2026-02-26 17:16:50 [INFO] app.api.routes: [analyze/start] New session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 role=tenant property=Westfield Centre
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/start] Deducted 2 credits for admin (remaining=8)
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/start] Session stored. llm_provider=openai
+INFO:     127.0.0.1:58840 - "POST /api/analyze/start HTTP/1.1" 200 OK
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/stream] GET stream session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2
+INFO:     127.0.0.1:58840 - "GET /api/analyze/stream?session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 HTTP/1.1" 200 OK
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/stream] Starting stream for session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 total_topics=16 llm_provider=openai
+2026-02-26 17:16:52 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=1 topics=['Income shifts (local income, higher/lower vs expected)', 'Traffic counts (current vs future, higher/lower)', 'Rent averages (same property, area, historical)', 'Rent forecast (today vs future, up or down)', 'Nearby infrastructure developments (effect on rents)']
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/stream] GET stream session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2
+INFO:     127.0.0.1:58855 - "GET /api/analyze/stream?session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 HTTP/1.1" 200 OK
+2026-02-26 17:16:52 [INFO] app.api.routes: [analyze/stream] Starting stream for session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 total_topics=16 llm_provider=openai
+2026-02-26 17:16:52 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=1 topics=['Income shifts (local income, higher/lower vs expected)', 'Traffic counts (current vs future, higher/lower)', 'Rent averages (same property, area, historical)', 'Rent forecast (today vs future, up or down)', 'Nearby infrastructure developments (effect on rents)']
+2026-02-26 17:16:57 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:16:57 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:16:58 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA income shifts retail lease  returned 8 results
+2026-02-26 17:16:59 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco income shifts retail returned 8 results
+2026-02-26 17:17:00 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA traffic counts retail lease returned 8 results
+2026-02-26 17:17:00 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco traffic counts retail returned 8 results
+2026-02-26 17:17:01 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA rent averages retail lease  returned 8 results
+2026-02-26 17:17:02 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco rent averages retail returned 8 results
+2026-02-26 17:17:02 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA rent forecast retail lease  returned 8 results
+2026-02-26 17:17:03 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco rent forecast retail returned 8 results
+2026-02-26 17:17:04 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA nearby infrastructure devel returned 8 results
+2026-02-26 17:17:04 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco infrastructure developments retail returned 8 results
+2026-02-26 17:17:18 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:18 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 1 from OpenAI (streaming)
+2026-02-26 17:17:18 [INFO] app.api.routes: [analyze/stream] Batch 1 returned 5 cards, 5 unique
+2026-02-26 17:17:18 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=2 topics=['Co-tenancy mix (e.g. anchor tenant commitment, category clustering)', 'Demographics & consumer buying capacity', 'Footfall', 'Local vacancy (new projects, tenant leverage to request lower rent)', 'Tenant business category trends (e.g. apparel growth in area)']
+2026-02-26 17:17:20 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:20 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 1 from OpenAI (streaming)
+2026-02-26 17:17:20 [INFO] app.api.routes: [analyze/stream] Batch 1 returned 5 cards, 5 unique
+2026-02-26 17:17:20 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=2 topics=['Co-tenancy mix (e.g. anchor tenant commitment, category clustering)', 'Demographics & consumer buying capacity', 'Footfall', 'Local vacancy (new projects, tenant leverage to request lower rent)', 'Tenant business category trends (e.g. apparel growth in area)']
+2026-02-26 17:17:21 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:23 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA co-tenancy mix retail lease returned 8 results
+2026-02-26 17:17:23 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:24 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre San Francisco co-tenancy mix retail leasing returned 8 results
+2026-02-26 17:17:24 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA demographics consumer buyin returned 8 results
+2026-02-26 17:17:25 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA foot traffic footfall returned 8 results
+2026-02-26 17:17:25 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre San Francisco demographics consumer buying capacity retail returned 8 results
+2026-02-26 17:17:26 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre San Francisco footfall pedestrian traffic returned 8 results
+2026-02-26 17:17:26 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA local vacancy new projects returned 8 results
+2026-02-26 17:17:27 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant business category tr returned 8 results
+2026-02-26 17:17:27 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre San Francisco local vacancy rates returned 8 results
+2026-02-26 17:17:28 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre San Francisco tenant business category trends returned 8 results
+2026-02-26 17:17:41 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:41 [WARNING] app.services.research_agent: [research_agent] OpenAI JSON decode error: Expecting ',' delimiter: line 1 column 3830 (char 3829)
+2026-02-26 17:17:41 [INFO] app.api.routes: [analyze/stream] Batch 2 returned 0 cards, 0 unique
+2026-02-26 17:17:41 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=3 topics=['Tenant / landlord risk (RAW FACTS ONLY: brand, cash, payment history, disputes, loans)', 'Upcoming building maintenance (e.g. HVAC)', 'Market activity & trends (area and tenant category)', 'Sales comps (portfolio vs this lease, comp brands, avg lease term, competitors in property)', 'Portfolio data (user-provided only)']
+2026-02-26 17:17:42 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:42 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 2 from OpenAI (streaming)
+2026-02-26 17:17:42 [INFO] app.api.routes: [analyze/stream] Batch 2 returned 5 cards, 5 unique
+2026-02-26 17:17:42 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=3 topics=['Tenant / landlord risk (RAW FACTS ONLY: brand, cash, payment history, disputes, loans)', 'Upcoming building maintenance (e.g. HVAC)', 'Market activity & trends (area and tenant category)', 'Sales comps (portfolio vs this lease, comp brands, avg lease term, competitors in property)', 'Portfolio data (user-provided only)']
+2026-02-26 17:17:44 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:45 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant landlord risk returned 8 results
+2026-02-26 17:17:46 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:17:46 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA upcoming building maintenan returned 8 results
+2026-02-26 17:17:47 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant landlord risk retail returned 8 results
+2026-02-26 17:17:49 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA upcoming building maintenan returned 8 results
+2026-02-26 17:17:50 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA market activity trends reta returned 8 results
+2026-02-26 17:17:51 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA market trends retail returned 8 results
+2026-02-26 17:17:51 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA sales comps retail returned 8 results
+2026-02-26 17:17:52 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA sales comps returned 8 results
+2026-02-26 17:17:52 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA portfolio data returned 8 results
+2026-02-26 17:17:52 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA portfolio data returned 8 results
+2026-02-26 17:18:12 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:12 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 3 from OpenAI (streaming)
+2026-02-26 17:18:12 [INFO] app.api.routes: [analyze/stream] Batch 3 returned 5 cards, 5 unique
+2026-02-26 17:18:12 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=4 topics=['NOI vs cashflow & avg occupancy (landlord: NOI to run building, occupancy level)']
+2026-02-26 17:18:14 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:15 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA NOI cash flow occupancy returned 8 results
+2026-02-26 17:18:16 [INFO] app.services.tavily_search: [tavily] query=San Francisco retail market average occupancy returned 8 results
+2026-02-26 17:18:17 [INFO] app.services.tavily_search: [tavily] query=San Francisco Westfield Centre lease NOI average cash flow returned 8 results
+2026-02-26 17:18:18 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street rental comps San Francisco returned 8 results
+2026-02-26 17:18:20 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco retail market analysis returned 8 results
+2026-02-26 17:18:25 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:25 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 3 from OpenAI (streaming)
+2026-02-26 17:18:25 [INFO] app.api.routes: [analyze/stream] Batch 3 returned 5 cards, 5 unique
+2026-02-26 17:18:25 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=4 topics=['NOI vs cashflow & avg occupancy (landlord: NOI to run building, occupancy level)']
+2026-02-26 17:18:27 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:28 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA NOI cashflow returned 8 results
+2026-02-26 17:18:29 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA occupancy rate returned 8 results
+2026-02-26 17:18:34 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:34 [INFO] app.services.research_agent: [research_agent] Got 2 cards for batch 4 from OpenAI (streaming)
+2026-02-26 17:18:34 [INFO] app.api.routes: [analyze/stream] Batch 4 returned 2 cards, 2 unique
+2026-02-26 17:18:34 [INFO] app.services.research_agent: [research_agent] get_dashboard_summary provider=openai cards=17
+2026-02-26 17:18:34 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:34 [WARNING] app.services.research_agent: [research_agent] OpenAI JSON decode error: Expecting ',' delimiter: line 1 column 3694 (char 3693)
+2026-02-26 17:18:34 [INFO] app.api.routes: [analyze/stream] Batch 4 returned 0 cards, 0 unique
+2026-02-26 17:18:34 [INFO] app.services.research_agent: [research_agent] get_dashboard_summary provider=openai cards=10
+2026-02-26 17:18:34 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-02-26 17:18:34 [WARNING] app.services.research_agent: [research_agent] get_dashboard_summary error with gpt-4o-mini-search-preview: Error code: 400 - {'error': {'message': "Response format 'json_object' is not supported with web_search.", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}
+2026-02-26 17:18:35 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-02-26 17:18:35 [WARNING] app.services.research_agent: [research_agent] get_dashboard_summary error with gpt-4o-mini-search-preview: Error code: 400 - {'error': {'message': "Response format 'json_object' is not supported with web_search.", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}
+2026-02-26 17:18:40 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:40 [INFO] app.services.research_agent: [research_agent] dashboard summary from OpenAI (model=gpt-4o-mini): fair_rent=41.5 vs_current_pct=-1.19 confidence=70 | recommendations: ideal_term='3 Years' negotiation_leverage="Moderate (high vacancy rates and declining foot traffic weaken landlord's position)" renewals='Cap at 2% YoY'
+2026-02-26 17:18:40 [INFO] app.api.routes: [analyze/stream] Stream done for session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2
+2026-02-26 17:18:40 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:18:40 [INFO] app.services.research_agent: [research_agent] dashboard summary from OpenAI (model=gpt-4o-mini): fair_rent=33.84 vs_current_pct=-19.43 confidence=75 | recommendations: ideal_term='5 Years' negotiation_leverage='Moderate (due to high vacancy rates and ongoing legal issues with the landlord)' renewals='Cap at 3% YoY'
+2026-02-26 17:18:40 [INFO] app.api.routes: [analyze/stream] Stream done for session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2
+INFO:     127.0.0.1:59336 - "GET /api/custom-cards?session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59338 - "GET /api/custom-cards?session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:58855 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59338 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59568 - "OPTIONS /api/custom-cards/4/edit/stream HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59569 - "POST /api/custom-cards/4/edit/stream HTTP/1.1" 200 OK
+2026-02-26 17:19:43 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+INFO:     127.0.0.1:59668 - "OPTIONS /api/custom-cards/4/confirm HTTP/1.1" 200 OK
+2026-02-26 17:20:04 [INFO] app.api.routes: [confirm_card_edit] Deducted 1 credit for admin editing validation card (remaining=7)
+2026-02-26 17:20:04 [INFO] app.api.routes: [confirm_card_edit] Updating validation card at index 4 for session 75f9f9e6. source_url: https://nainorcal.com/wp-content/uploads/2024/07/San-Francisco-CA-USA-Retail-Market.pdf
+INFO:     127.0.0.1:59669 - "POST /api/custom-cards/4/confirm HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59669 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59872 - "OPTIONS /api/custom-cards/stream HTTP/1.1" 200 OK
+2026-02-26 17:20:52 [INFO] app.api.routes: [custom-cards/stream] Deducted 1 credit for admin (remaining=6)
+INFO:     127.0.0.1:59873 - "POST /api/custom-cards/stream HTTP/1.1" 200 OK
+2026-02-26 17:20:52 [INFO] app.services.research_agent: [research_agent] run_card_batch provider=openai batch_index=1 topics=['Analyze how current and upcoming retail projects within 3 miles of this property impact vacancy and give the tenant leverage to negotiate a lower base rent over the next 2 years.']
+2026-02-26 17:20:54 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:20:55 [INFO] app.services.tavily_search: [tavily] query=current and upcoming retail projects within 3 miles of 1200 Market Street San Fr returned 8 results
+2026-02-26 17:20:58 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:20:59 [INFO] app.services.tavily_search: [tavily] query=current retail projects San Francisco 1200 Market Street 3 miles vacancy returned 8 results
+2026-02-26 17:21:01 [INFO] app.services.tavily_search: [tavily] query=upcoming retail projects San Francisco 1200 Market Street 3 miles returned 8 results
+2026-02-26 17:21:02 [INFO] app.services.tavily_search: [tavily] query=vacancy rates San Francisco retail projects 2025 returned 8 results
+2026-02-26 17:21:21 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:21:21 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 1 from OpenAI
+INFO:     127.0.0.1:59873 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60228 - "OPTIONS /api/analyze/chat HTTP/1.1" 200 OK
+2026-02-26 17:22:16 [INFO] app.api.routes: [analyze/chat] session_id=75f9f9e6-a1d1-4095-9292-f84eb1d0bbd2 message_len=209 llm_provider=openai
+2026-02-26 17:22:16 [INFO] app.services.research_agent: [research_agent] answer_chat provider=openai
+2026-02-26 17:22:22 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:22:22 [INFO] app.services.research_agent: [research_agent] answer_chat (OpenAI) reply length=1876
+INFO:     127.0.0.1:60229 - "POST /api/analyze/chat HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61242 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61249 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61270 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:61273 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62497 - "OPTIONS /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62498 - "POST /api/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62498 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62512 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+2026-02-26 17:31:33 [INFO] app.api.routes: [analyze/start] New session_id=3babae39-0691-483f-8d12-82c9e2aaa412 role=tenant property=Westfield Centre
+2026-02-26 17:31:34 [INFO] app.api.routes: [analyze/start] Deducted 2 credits for admin (remaining=4)
+2026-02-26 17:31:34 [INFO] app.api.routes: [analyze/start] Session stored. llm_provider=openai
+INFO:     127.0.0.1:62599 - "POST /api/analyze/start HTTP/1.1" 200 OK
+2026-02-26 17:31:34 [INFO] app.api.routes: [analyze/stream] GET stream session_id=3babae39-0691-483f-8d12-82c9e2aaa412
+INFO:     127.0.0.1:62599 - "GET /api/analyze/stream?session_id=3babae39-0691-483f-8d12-82c9e2aaa412 HTTP/1.1" 200 OK
+2026-02-26 17:31:34 [INFO] app.api.routes: [analyze/stream] Starting stream for session_id=3babae39-0691-483f-8d12-82c9e2aaa412 total_topics=16 llm_provider=openai
+2026-02-26 17:31:34 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=1 topics=['Income shifts (local income, higher/lower vs expected)', 'Traffic counts (current vs future, higher/lower)', 'Rent averages (same property, area, historical)', 'Rent forecast (today vs future, up or down)', 'Nearby infrastructure developments (effect on rents)']
+2026-02-26 17:31:35 [INFO] app.api.routes: [analyze/stream] GET stream session_id=3babae39-0691-483f-8d12-82c9e2aaa412
+INFO:     127.0.0.1:62610 - "GET /api/analyze/stream?session_id=3babae39-0691-483f-8d12-82c9e2aaa412 HTTP/1.1" 200 OK
+2026-02-26 17:31:35 [INFO] app.api.routes: [analyze/stream] Starting stream for session_id=3babae39-0691-483f-8d12-82c9e2aaa412 total_topics=16 llm_provider=openai
+2026-02-26 17:31:35 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=1 topics=['Income shifts (local income, higher/lower vs expected)', 'Traffic counts (current vs future, higher/lower)', 'Rent averages (same property, area, historical)', 'Rent forecast (today vs future, up or down)', 'Nearby infrastructure developments (effect on rents)']
+2026-02-26 17:31:38 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:31:38 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:31:39 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA income shifts retail rent market returned 8 results
+2026-02-26 17:31:40 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street, San Francisco, CA income shifts retail lease market data returned 8 results
+2026-02-26 17:31:41 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA traffic counts retail rent market returned 8 results
+2026-02-26 17:31:41 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street, San Francisco, CA traffic counts retail lease market data returned 8 results
+2026-02-26 17:31:42 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA rent averages retail rent market returned 8 results
+2026-02-26 17:31:43 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street, San Francisco, CA rent averages retail lease market data returned 8 results
+2026-02-26 17:31:43 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA rent forecast retail rent market returned 8 results
+2026-02-26 17:31:44 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street, San Francisco, CA rent forecast retail lease market data returned 8 results
+2026-02-26 17:31:46 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA nearby infrastructure developments retail re returned 8 results
+2026-02-26 17:31:46 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street, San Francisco, CA nearby infrastructure developments retail  returned 8 results
+2026-02-26 17:32:03 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:03 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 1 from OpenAI (streaming)
+2026-02-26 17:32:03 [INFO] app.api.routes: [analyze/stream] Batch 1 returned 5 cards, 5 unique
+2026-02-26 17:32:03 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=2 topics=['Co-tenancy mix (e.g. anchor tenant commitment, category clustering)', 'Demographics & consumer buying capacity', 'Footfall', 'Local vacancy (new projects, tenant leverage to request lower rent)', 'Tenant business category trends (e.g. apparel growth in area)']
+2026-02-26 17:32:03 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:03 [WARNING] app.services.research_agent: [research_agent] OpenAI JSON decode error: Expecting ',' delimiter: line 1 column 3529 (char 3528)
+2026-02-26 17:32:03 [INFO] app.api.routes: [analyze/stream] Batch 1 returned 0 cards, 0 unique
+2026-02-26 17:32:03 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=2 topics=['Co-tenancy mix (e.g. anchor tenant commitment, category clustering)', 'Demographics & consumer buying capacity', 'Footfall', 'Local vacancy (new projects, tenant leverage to request lower rent)', 'Tenant business category trends (e.g. apparel growth in area)']
+2026-02-26 17:32:07 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:08 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA co-tenancy mix retail returned 8 results
+2026-02-26 17:32:08 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA demographics consumer buyin returned 8 results
+2026-02-26 17:32:08 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:09 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA co-tenancy mix retail lease returned 8 results
+2026-02-26 17:32:10 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA footfall traffic counts returned 8 results
+2026-02-26 17:32:11 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA demographics consumer buyin returned 5 results
+2026-02-26 17:32:11 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA local vacancy returned 8 results
+2026-02-26 17:32:11 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant business category tr returned 8 results
+2026-02-26 17:32:12 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA foot traffic retail lease m returned 8 results
+2026-02-26 17:32:13 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA local vacancy retail lease  returned 8 results
+2026-02-26 17:32:16 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant business category tr returned 8 results
+2026-02-26 17:32:32 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:32 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 2 from OpenAI (streaming)
+2026-02-26 17:32:32 [INFO] app.api.routes: [analyze/stream] Batch 2 returned 5 cards, 5 unique
+2026-02-26 17:32:32 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=3 topics=['Tenant / landlord risk (RAW FACTS ONLY: brand, cash, payment history, disputes, loans)', 'Upcoming building maintenance (e.g. HVAC)', 'Market activity & trends (area and tenant category)', 'Sales comps (portfolio vs this lease, comp brands, avg lease term, competitors in property)', 'Portfolio data (user-provided only)']
+2026-02-26 17:32:35 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:35 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 2 from OpenAI (streaming)
+2026-02-26 17:32:35 [INFO] app.api.routes: [analyze/stream] Batch 2 returned 5 cards, 5 unique
+2026-02-26 17:32:35 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=3 topics=['Tenant / landlord risk (RAW FACTS ONLY: brand, cash, payment history, disputes, loans)', 'Upcoming building maintenance (e.g. HVAC)', 'Market activity & trends (area and tenant category)', 'Sales comps (portfolio vs this lease, comp brands, avg lease term, competitors in property)', 'Portfolio data (user-provided only)']
+2026-02-26 17:32:36 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:38 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant landlord risk retail returned 8 results
+2026-02-26 17:32:39 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA upcoming building maintenan returned 8 results
+2026-02-26 17:32:39 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:39 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA tenant landlord risk retail returned 8 results
+2026-02-26 17:32:41 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA upcoming building maintenan returned 8 results
+2026-02-26 17:32:41 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA market activity trends reta returned 8 results
+2026-02-26 17:32:41 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA sales comps returned 8 results
+2026-02-26 17:32:41 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA portfolio data returned 8 results
+2026-02-26 17:32:42 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA market activity trends reta returned 8 results
+2026-02-26 17:32:43 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA sales comps retail lease returned 8 results
+2026-02-26 17:32:43 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA portfolio data returned 8 results
+2026-02-26 17:32:55 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:55 [INFO] app.services.research_agent: [research_agent] Got 3 cards for batch 3 from OpenAI (streaming)
+2026-02-26 17:32:55 [INFO] app.api.routes: [analyze/stream] Batch 3 returned 3 cards, 3 unique
+2026-02-26 17:32:55 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=4 topics=['NOI vs cashflow & avg occupancy (landlord: NOI to run building, occupancy level)']
+2026-02-26 17:32:57 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:32:59 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA retail lease NOI cashflow returned 8 results
+2026-02-26 17:33:00 [INFO] app.services.tavily_search: [tavily] query=Westfield Centre 1200 Market Street San Francisco CA retail lease average occupa returned 8 results
+2026-02-26 17:33:00 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:00 [INFO] app.services.research_agent: [research_agent] Got 5 cards for batch 3 from OpenAI (streaming)
+2026-02-26 17:33:00 [INFO] app.api.routes: [analyze/stream] Batch 3 returned 5 cards, 5 unique
+2026-02-26 17:33:00 [INFO] app.services.research_agent: [research_agent] run_card_batch_streaming provider=openai batch_index=4 topics=['NOI vs cashflow & avg occupancy (landlord: NOI to run building, occupancy level)']
+2026-02-26 17:33:02 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:04 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA NOI vs cashflow retail lease returned 8 results
+2026-02-26 17:33:06 [INFO] app.services.tavily_search: [tavily] query=1200 Market Street San Francisco CA average occupancy retail lease returned 8 results
+2026-02-26 17:33:08 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:08 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:08 [INFO] app.services.research_agent: [research_agent] Got 2 cards for batch 4 from OpenAI (streaming)
+2026-02-26 17:33:08 [INFO] app.api.routes: [analyze/stream] Batch 4 returned 2 cards, 2 unique
+2026-02-26 17:33:08 [INFO] app.services.research_agent: [research_agent] get_dashboard_summary provider=openai cards=10
+2026-02-26 17:33:09 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-02-26 17:33:09 [WARNING] app.services.research_agent: [research_agent] get_dashboard_summary error with gpt-4o-mini-search-preview: Error code: 400 - {'error': {'message': "Response format 'json_object' is not supported with web_search.", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}
+2026-02-26 17:33:09 [INFO] app.services.tavily_search: [tavily] query=San Francisco commercial real estate occupancy rates 2023 returned 8 results
+2026-02-26 17:33:10 [INFO] app.services.tavily_search: [tavily] query=San Francisco commercial real estate NOI data 2023 returned 8 results
+2026-02-26 17:33:15 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:15 [INFO] app.services.research_agent: [research_agent] dashboard summary from OpenAI (model=gpt-4o-mini): fair_rent=36.0 vs_current_pct=-14.29 confidence=85 | recommendations: ideal_term='3 Years' negotiation_leverage='High (due to increasing local vacancy rates and tenant exodus)' renewals='Cap at 2% YoY'
+2026-02-26 17:33:15 [INFO] app.api.routes: [analyze/stream] Stream done for session_id=3babae39-0691-483f-8d12-82c9e2aaa412
+2026-02-26 17:33:19 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:19 [INFO] app.services.research_agent: [research_agent] Got 2 cards for batch 4 from OpenAI (streaming)
+2026-02-26 17:33:19 [INFO] app.api.routes: [analyze/stream] Batch 4 returned 2 cards, 2 unique
+2026-02-26 17:33:19 [INFO] app.services.research_agent: [research_agent] get_dashboard_summary provider=openai cards=17
+2026-02-26 17:33:19 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 400 Bad Request"
+2026-02-26 17:33:19 [WARNING] app.services.research_agent: [research_agent] get_dashboard_summary error with gpt-4o-mini-search-preview: Error code: 400 - {'error': {'message': "Response format 'json_object' is not supported with web_search.", 'type': 'invalid_request_error', 'param': 'response_format', 'code': None}}
+INFO:     127.0.0.1:63069 - "GET /api/custom-cards?session_id=3babae39-0691-483f-8d12-82c9e2aaa412 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63070 - "GET /api/custom-cards?session_id=3babae39-0691-483f-8d12-82c9e2aaa412 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63068 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+INFO:     127.0.0.1:63070 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK
+2026-02-26 17:33:25 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-02-26 17:33:25 [INFO] app.services.research_agent: [research_agent] dashboard summary from OpenAI (model=gpt-4o-mini): fair_rent=36.57 vs_current_pct=-12.93 confidence=90 | recommendations: ideal_term='3 Years' negotiation_leverage='High (due to 93% vacancy rates and mall destabilization)' renewals='3% annual escalation'
+2026-02-26 17:33:25 [INFO] app.api.routes: [analyze/stream] Stream done for session_id=3babae39-0691-483f-8d12-82c9e2aaa412
+INFO:     127.0.0.1:64592 - "GET /api/custom-cards?session_id=3babae39-0691-483f-8d12-82c9e2aaa412 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64591 - "GET /api/user/credits?username=admin HTTP/1.1" 200 OK

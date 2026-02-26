@@ -292,6 +292,117 @@ def _cards_from_llm_json(
     return cards
 
 
+def create_custom_card_from_topic(session_data: dict, custom_topic: str) -> dict:
+    """
+    Create a single custom insight card for the given session and custom topic.
+
+    This reuses the existing run_card_batch flow so the resulting card matches the
+    same schema and quality as the validation insight cards.
+    """
+    analyze_as = session_data.get("analyze_as", "tenant")
+    property_name = session_data.get("property_name", "")
+    address = session_data.get("address", "")
+    leasable_area = session_data.get("leasable_area", "")
+    current_base_rent = session_data.get("current_base_rent", "")
+    document_context = session_data.get("document_context")
+    llm_provider = session_data.get("llm_provider", "openai")
+
+    cards = run_card_batch(
+        analyze_as=analyze_as,
+        property_name=property_name,
+        address=address,
+        leasable_area=leasable_area,
+        current_base_rent=current_base_rent,
+        document_context=document_context,
+        card_topics_batch=[custom_topic],
+        batch_index=1,
+        llm_provider=llm_provider,
+    )
+    if not cards:
+        raise RuntimeError("LLM did not return a custom card")
+    return cards[0]
+
+
+def edit_insight_card_with_llm(session_data: dict, card: dict, edit_prompt: str) -> dict:
+    """
+    Use the LLM to refine or adjust an existing insight card given an edit prompt.
+
+    The LLM receives the current card JSON and must return an updated card JSON
+    with the same InsightCard fields: title, impact, confidence_score, source,
+    insight, data_evidence, why_it_matters, baseline_pct, current_trend_pct, source_url.
+    """
+    provider = _normalize_provider(session_data.get("llm_provider"))
+    title = card.get("title", "Custom insight")
+
+    system_prompt = (
+        "You are the LegalGraph AI Research Agent for Lease Negotiation.\n"
+        "You are given an existing insight card in JSON and a user edit request.\n"
+        "Update the card fields to reflect the request while keeping the structure and intent consistent.\n"
+        "Always return a SINGLE JSON object with exactly these keys:\n"
+        "title, impact, confidence_score, source, insight, data_evidence, why_it_matters,\n"
+        "baseline_pct, current_trend_pct, source_url.\n"
+        "impact must be one of 'positive', 'neutral', 'negative'.\n"
+        "confidence_score must be 0-100. baseline_pct and current_trend_pct may be null or 1-100.\n"
+        "CRITICAL: source_url should be preserved from the original card UNLESS the user explicitly requests changing the source or finding new data. "
+        "If the original card has a source_url, copy it to the updated card unless new research is needed.\n"
+        "Do not include any extra keys or markdown."
+    )
+
+    user_msg = (
+        "Existing card JSON:\n"
+        f"{json.dumps(card, ensure_ascii=False)}\n\n"
+        f"Edit request from user:\n{edit_prompt.strip()}\n\n"
+        "Return ONLY the updated card JSON object."
+    )
+
+    if provider == "anthropic":
+        # For now, fall back to OpenAI if Anthropic is selected but not configured.
+        if not _anthropic_enabled():
+            provider = "openai"
+
+    if provider == "openai":
+        if not OPENAI_API_KEY:
+            raise RuntimeError("OPENAI_API_KEY not set; cannot edit card with LLM")
+        client = OpenAI(api_key=OPENAI_API_KEY)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_msg},
+                ],
+                response_format={"type": "json_object"},
+            )
+            raw = response.choices[0].message.content or "{}"
+            data = json.loads(raw)
+            # Validate/normalize via InsightCard schema to keep shape consistent
+            # For source_url, preserve original if LLM returns null/empty/missing
+            llm_source_url = data.get("source_url")
+            original_source_url = card.get("source_url")
+            final_source_url = llm_source_url if (llm_source_url and str(llm_source_url).strip()) else original_source_url
+
+            ic = InsightCard(
+                title=data.get("title", title) or title,
+                impact=data.get("impact", card.get("impact", "neutral")) or "neutral",
+                confidence_score=int(data.get("confidence_score", card.get("confidence_score", 0))),
+                source=data.get("source", card.get("source", "Not available")) or "Not available",
+                insight=(data.get("insight") or card.get("insight") or "").strip() or None,
+                data_evidence=data.get("data_evidence", card.get("data_evidence", "No data")) or "No data",
+                why_it_matters=data.get("why_it_matters", card.get("why_it_matters", "")) or "",
+                baseline_pct=data.get("baseline_pct", card.get("baseline_pct")),
+                current_trend_pct=data.get("current_trend_pct", card.get("current_trend_pct")),
+                source_url=final_source_url,
+            )
+            return ic.model_dump()
+        except Exception as e:  # pragma: no cover - defensive
+            logger.warning("[research_agent] edit_insight_card_with_llm error: %s", e)
+            return card
+
+    # Anthropic or other providers can be added here later; for now, return original card
+    logger.warning("[research_agent] edit_insight_card_with_llm falling back to original card (provider=%s)", provider)
+    return card
+
+
 # Web search tool definition for OpenAI (model calls this; we run Tavily and return results with URLs)
 WEB_SEARCH_TOOL = {
     "type": "function",

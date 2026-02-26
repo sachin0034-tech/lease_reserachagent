@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
 import {
   HiOutlineBanknotes,
   HiOutlineChartBar,
@@ -31,8 +31,10 @@ import {
   HiOutlineDocumentText,
   HiOutlinePlus,
   HiOutlineTrash,
+  HiArrowRightOnRectangle,
 } from 'react-icons/hi2';
 import './Dashboard.css';
+import './AnalysisScreen.css';
 
 const LogoIcon = () => (
   <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" className="dashboard-logo-icon">
@@ -101,7 +103,7 @@ function hasCardData(card) {
   return true;
 }
 
-function InsightCardTile({ card, onViewEvidence }) {
+function InsightCardTile({ card, onViewEvidence, onEdit, isNew }) {
   const impactClass = card.impact === 'positive' ? 'positive' : card.impact === 'negative' ? 'negative' : 'neutral';
   const impactLabel = card.impact === 'positive' ? 'POSITIVE' : card.impact === 'negative' ? 'NEGATIVE' : 'NEUTRAL';
   const summary = (card.insight || card.data_evidence)?.slice(0, 80) || card.why_it_matters?.slice(0, 80) || '';
@@ -109,18 +111,31 @@ function InsightCardTile({ card, onViewEvidence }) {
   const TrendIcon = impactClass === 'positive' ? HiOutlineArrowTrendingUp : impactClass === 'negative' ? HiOutlineArrowTrendingDown : null;
 
   return (
-    <div className={`dashboard-insight-tile dashboard-insight-tile--${impactClass}`}>
+    <div className={`dashboard-insight-tile dashboard-insight-tile--${impactClass}${isNew ? ' dashboard-insight-tile--new' : ''}`}>
+      {isNew && <span className="dashboard-insight-tile__new-badge">NEW</span>}
       <div className="dashboard-insight-tile__head">
         <div className="dashboard-insight-tile__icon" aria-hidden>
           <IconComponent className="dashboard-insight-tile__icon-svg" size={22} />
         </div>
-        <span className={`dashboard-insight-tile__badge dashboard-insight-tile__badge--${impactClass}`}>
-          {TrendIcon && <TrendIcon className="dashboard-insight-tile__badge-icon" size={12} />}
-          {impactLabel}
-        </span>
+        <div className="dashboard-insight-tile__head-right">
+          <span className={`dashboard-insight-tile__badge dashboard-insight-tile__badge--${impactClass}`}>
+            {TrendIcon && <TrendIcon className="dashboard-insight-tile__badge-icon" size={12} />}
+            {impactLabel}
+          </span>
+          {onEdit && (
+            <button
+              type="button"
+              className="dashboard-insight-tile__edit"
+              onClick={onEdit}
+              aria-label="Edit card"
+            >
+              ✎
+            </button>
+          )}
+        </div>
       </div>
       <h3 className="dashboard-insight-tile__title">{card.title}</h3>
-      <p className="dashboard-insight-tile__summary">{summary}{summary.length >= 80 ? '…' : ''}</p>
+      <p className="dashboard-insight-tile__summary">{summary}{summary.length >= 80 ? '...' : ''}</p>
       <button type="button" className="dashboard-insight-tile__link" onClick={() => onViewEvidence(card)}>
         <span>View Evidence</span>
         <HiOutlineArrowRight className="dashboard-insight-tile__link-arrow" size={16} />
@@ -537,7 +552,10 @@ export default function Dashboard() {
   }, [sessionId, state.dashboardSummary, state.cards]);
 
   const dashboardSummary = state.dashboardSummary || restoredSummary || {};
-  const allCards = dedupeCardsByTitle(state.cards?.length ? state.cards : restoredCards);
+  // Mutable local edits override both router state and restored data so card updates are reflected immediately
+  const [editedValidationCards, setEditedValidationCards] = useState(null);
+  const baseCards = state.cards?.length ? state.cards : restoredCards;
+  const allCards = dedupeCardsByTitle(editedValidationCards !== null ? editedValidationCards : baseCards);
   const cards = allCards.filter(hasCardData);
   const property = state.property || dashboardSummary?.property || restoredProperty || {};
   const sessionNotFoundOnServer = restoredData && restoredData.session_found === false;
@@ -559,14 +577,152 @@ export default function Dashboard() {
   const [activeChip, setActiveChip] = useState(null);
   const [chatLoading, setChatLoading] = useState(false);
   const chatMessagesContainerRef = useRef(null);
+  const [credits, setCredits] = useState(null);
+  const [navUsername] = useState(() => {
+    try { return (typeof window !== 'undefined' && window.localStorage.getItem('lg_username')) || ''; } catch { return ''; }
+  });
+  const [customCards, setCustomCards] = useState([]);
+  const [activeInsightsTab, setActiveInsightsTab] = useState('validation');
+  const [customCardModalOpen, setCustomCardModalOpen] = useState(false);
+  const [customCardPrompt, setCustomCardPrompt] = useState('');
+  const [customCardSubmitting, setCustomCardSubmitting] = useState(false);
+  const [customCardError, setCustomCardError] = useState(null);
+  const [customCardStreamDone, setCustomCardStreamDone] = useState(false);
+  const [newCustomCardIndices, setNewCustomCardIndices] = useState(new Set());
+  // Sidebar log state (same pattern as AnalysisScreen)
+  const [sidebarSteps, setSidebarSteps] = useState([]);
+  const [sidebarDisplayedCount, setSidebarDisplayedCount] = useState(0);
+  const [sidebarExitingSteps, setSidebarExitingSteps] = useState([]);
+  const SIDEBAR_STEP_REVEAL_MS = 320;
+  const SIDEBAR_MAX_VISIBLE = 6;
+  const SIDEBAR_LOG_EXIT_MS = 450;
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState(null);
+  const [editingSource, setEditingSource] = useState(null);
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editingPrompt, setEditingPrompt] = useState('');
+  const [editingSubmitting, setEditingSubmitting] = useState(false);
+  const [editingError, setEditingError] = useState(null);
+  // Edit modal phases: 'form' | 'streaming' | 'compare'
+  const [editPhase, setEditPhase] = useState('form');
+  const [editSidebarSteps, setEditSidebarSteps] = useState([]);
+  const [editSidebarDisplayedCount, setEditSidebarDisplayedCount] = useState(0);
+  const [editSidebarExitingSteps, setEditSidebarExitingSteps] = useState([]);
+  const [editStreamDone, setEditStreamDone] = useState(false);
+  const [editUpdatedCard, setEditUpdatedCard] = useState(null);
+  const [editConfirming, setEditConfirming] = useState(false);
+  const EDIT_STEP_REVEAL_MS = 320;
+  const EDIT_MAX_VISIBLE = 6;
+  const EDIT_EXIT_MS = 450;
+  const [toastMessage, setToastMessage] = useState(null);
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
+
+  // Sidebar log step-reveal (same staggered pattern as AnalysisScreen)
+  useEffect(() => {
+    if (sidebarSteps.length <= sidebarDisplayedCount) return;
+    const timer = setTimeout(() => {
+      const nextCount = Math.min(sidebarDisplayedCount + 1, sidebarSteps.length);
+      if (nextCount > SIDEBAR_MAX_VISIBLE && sidebarDisplayedCount >= SIDEBAR_MAX_VISIBLE) {
+        const leaving = sidebarSteps[sidebarDisplayedCount - SIDEBAR_MAX_VISIBLE];
+        if (leaving) {
+          setSidebarExitingSteps((prev) => [...prev, { ...leaving, exitId: leaving.id }]);
+          setTimeout(() => {
+            setSidebarExitingSteps((prev) => prev.filter((s) => s.exitId !== leaving.id));
+          }, SIDEBAR_LOG_EXIT_MS);
+        }
+      }
+      setSidebarDisplayedCount(nextCount);
+    }, SIDEBAR_STEP_REVEAL_MS);
+    return () => clearTimeout(timer);
+  }, [sidebarSteps, sidebarSteps.length, sidebarDisplayedCount, SIDEBAR_MAX_VISIBLE, SIDEBAR_LOG_EXIT_MS, SIDEBAR_STEP_REVEAL_MS]);
+
+  // Edit modal sidebar step-reveal (same staggered pattern)
+  useEffect(() => {
+    if (editSidebarSteps.length <= editSidebarDisplayedCount) return;
+    const timer = setTimeout(() => {
+      const nextCount = Math.min(editSidebarDisplayedCount + 1, editSidebarSteps.length);
+      if (nextCount > EDIT_MAX_VISIBLE && editSidebarDisplayedCount >= EDIT_MAX_VISIBLE) {
+        const leaving = editSidebarSteps[editSidebarDisplayedCount - EDIT_MAX_VISIBLE];
+        if (leaving) {
+          setEditSidebarExitingSteps((prev) => [...prev, { ...leaving, exitId: leaving.id }]);
+          setTimeout(() => {
+            setEditSidebarExitingSteps((prev) => prev.filter((s) => s.exitId !== leaving.id));
+          }, EDIT_EXIT_MS);
+        }
+      }
+      setEditSidebarDisplayedCount(nextCount);
+    }, EDIT_STEP_REVEAL_MS);
+    return () => clearTimeout(timer);
+  }, [editSidebarSteps, editSidebarSteps.length, editSidebarDisplayedCount, EDIT_MAX_VISIBLE, EDIT_EXIT_MS, EDIT_STEP_REVEAL_MS]);
 
   // Scroll chat to bottom when new message or thinking indicator appears
   useEffect(() => {
     const el = chatMessagesContainerRef.current;
     if (el) el.scrollTop = el.scrollHeight - el.clientHeight;
   }, [chatMessages, chatLoading]);
+  // Helper function to refresh credits
+  const refreshCredits = async () => {
+    let username = '';
+    try {
+      if (typeof window !== 'undefined') {
+        username = window.localStorage.getItem('lg_username') || '';
+      }
+    } catch {
+      username = '';
+    }
+    if (!username) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/user/credits?username=${encodeURIComponent(username)}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (typeof data.credits === 'number') {
+        setCredits(data.credits);
+      }
+    } catch {
+      // ignore credit fetch errors
+    }
+  };
+
+  // Fetch credits for the logged-in user (if any) to show in navbar
+  useEffect(() => {
+    refreshCredits();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [API_BASE]);
+
+  // Fetch any previously saved custom cards for this session
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/custom-cards?session_id=${encodeURIComponent(sessionId)}`, {
+          credentials: 'include',
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled && Array.isArray(data.cards)) {
+          setCustomCards(data.cards);
+        }
+      } catch {
+        // ignore fetch errors
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [API_BASE, sessionId]);
+
+  const showDashboardToast = (message) => {
+    setToastMessage(message);
+    if (typeof window !== 'undefined') {
+      window.clearTimeout(showDashboardToast._timer);
+      // eslint-disable-next-line no-param-reassign
+      showDashboardToast._timer = window.setTimeout(() => setToastMessage(null), 3500);
+    }
+  };
 
   const sendChatMessage = async (text) => {
     const trimmed = (text || '').trim();
@@ -658,15 +814,14 @@ export default function Dashboard() {
   const comparisonPct = port.comparison_pct != null ? Number(port.comparison_pct) : null;
   const comparisonText = port.comparison_text || '';
 
+  const hasValidationCards = cards.length > 0;
+  const hasCustomCards = customCards.length > 0;
+
+  // Redirect to form page if no dashboard data exists
   if (!property.name && !dashboardSummary.fair_market_rent) {
-    return (
-      <div className="dashboard">
-        <div className="dashboard-empty">
-          <p>No dashboard data. Run an analysis first.</p>
-          <Link to="/">Go to form</Link>
-        </div>
-      </div>
-    );
+    // Use useEffect to prevent navigation during render
+    // But for immediate redirect, we can use Navigate component
+    return <Navigate to="/start" replace />;
   }
 
   return (
@@ -677,6 +832,21 @@ export default function Dashboard() {
           <span className="dashboard-navbar__name">LegalGraph.AI</span>
         </div>
         <div className="dashboard-navbar__right">
+          {typeof credits === 'number' && (
+            <div className="credits-pill" title="Remaining analysis credits">
+              <span className="credits-pill__label">Credits</span>
+              <div className="credits-pill__bar">
+                <div
+                  className="credits-pill__fill"
+                  style={{ width: `${Math.max(0, Math.min(100, (credits / 20) * 100))}%` }}
+                />
+              </div>
+              <span className="credits-pill__value">
+                {credits}
+                /20
+              </span>
+            </div>
+          )}
           <button type="button" className="dashboard-navbar__settings" onClick={() => setSettingsModalOpen(true)} aria-label="Open settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
               <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.04.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" />
@@ -685,10 +855,26 @@ export default function Dashboard() {
           </button>
           <div className="dashboard-navbar__user">
             <div className="dashboard-navbar__user-text">
-              <span className="dashboard-navbar__user-name">LegalGraph User</span>
+              <span className="dashboard-navbar__user-name">{navUsername || 'LegalGraph User'}</span>
               <span className="dashboard-navbar__user-role">Admin</span>
             </div>
-            <div className="dashboard-navbar__avatar" aria-hidden>LG</div>
+            <div className="dashboard-navbar__avatar" aria-hidden>
+              {navUsername ? navUsername.slice(0, 2).toUpperCase() : 'LG'}
+            </div>
+            <button
+              type="button"
+              className="dashboard-navbar__logout-btn"
+              onClick={() => {
+                try { if (typeof window !== 'undefined') { window.localStorage.removeItem('lg_username'); window.localStorage.removeItem(SESSION_STORAGE_KEY); } } catch (_) {}
+                navigate('/');
+              }}
+              aria-label={"Logout " + (navUsername || "user")}
+            >
+              <span className="dashboard-navbar__logout-btn-icon">
+                <HiArrowRightOnRectangle size={20} />
+              </span>
+              <span className="dashboard-navbar__logout-btn-text">Logout</span>
+            </button>
           </div>
         </div>
       </header>
@@ -849,7 +1035,7 @@ export default function Dashboard() {
             <button
               type="button"
               className="dashboard-btn dashboard-btn--primary"
-              onClick={() => navigate('/')}
+              onClick={() => navigate('/start')}
             >
               Start new analysis
             </button>
@@ -857,59 +1043,144 @@ export default function Dashboard() {
         </section>
         )}
 
-        {cards.length > 0 && (
+        {(hasValidationCards || hasCustomCards) && (
         <section className={`dashboard-insights ${insightsExpanded ? 'dashboard-insights--expanded' : ''}`}>
+          {/* Section header: title + Create button */}
           <div className="dashboard-insights__head">
             <h2 className="dashboard-insights__title">
               <span className="dashboard-insights__title-icon">
                 <HiOutlineSparkles size={20} />
               </span>
-              Validation Insights
+              Insights
+              <span className="dashboard-insights__title-count">{activeInsightsTab === 'customCard' ? customCards.length : cards.length}</span>
             </h2>
-            <span className="dashboard-insights__sources">Total Sources: {cards.length}</span>
-          </div>
-          <div className="dashboard-insights__filters" role="group" aria-label="Filter by impact">
             <button
               type="button"
-              className={`dashboard-insights__filter ${insightImpactFilter === 'all' ? 'dashboard-insights__filter--active' : ''}`}
-              onClick={() => setInsightImpactFilter('all')}
+              className="dashboard-insights__create-btn"
+              onClick={() => {
+                setCustomCardError(null);
+                setCustomCardPrompt('');
+                setCustomCardModalOpen(true);
+              }}
+            >
+              <span className="dashboard-insights__create-btn-icon">
+                <HiOutlinePlus size={16} />
+              </span>
+              Create Custom Card
+            </button>
+          </div>
+
+          {/* Filter bar: All / Positive / Neutral / Negative + dynamic Custom Cards tab */}
+          <div className="dashboard-insights__filterbar" role="tablist" aria-label="Filter insights">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeInsightsTab === 'validation' && insightImpactFilter === 'all'}
+              className={`dashboard-insights__filterbar-btn ${activeInsightsTab === 'validation' && insightImpactFilter === 'all' ? 'dashboard-insights__filterbar-btn--active' : ''}`}
+              onClick={() => { setActiveInsightsTab('validation'); setInsightImpactFilter('all'); }}
             >
               All
+              <span className="dashboard-insights__filterbar-count">{cards.length}</span>
             </button>
             {countByImpact.positive > 0 && (
               <button
                 type="button"
-                className={`dashboard-insights__filter dashboard-insights__filter--positive ${insightImpactFilter === 'positive' ? 'dashboard-insights__filter--active' : ''}`}
-                onClick={() => setInsightImpactFilter('positive')}
+                role="tab"
+                aria-selected={activeInsightsTab === 'validation' && insightImpactFilter === 'positive'}
+                className={`dashboard-insights__filterbar-btn dashboard-insights__filterbar-btn--positive ${activeInsightsTab === 'validation' && insightImpactFilter === 'positive' ? 'dashboard-insights__filterbar-btn--active dashboard-insights__filterbar-btn--active-positive' : ''}`}
+                onClick={() => { setActiveInsightsTab('validation'); setInsightImpactFilter('positive'); }}
               >
-                Positive <span className="dashboard-insights__filter-count">({countByImpact.positive})</span>
+                <span className="dashboard-insights__filterbar-dot dashboard-insights__filterbar-dot--positive" />
+                Positive
+                <span className="dashboard-insights__filterbar-count">{countByImpact.positive}</span>
               </button>
             )}
             {countByImpact.neutral > 0 && (
               <button
                 type="button"
-                className={`dashboard-insights__filter dashboard-insights__filter--neutral ${insightImpactFilter === 'neutral' ? 'dashboard-insights__filter--active' : ''}`}
-                onClick={() => setInsightImpactFilter('neutral')}
+                role="tab"
+                aria-selected={activeInsightsTab === 'validation' && insightImpactFilter === 'neutral'}
+                className={`dashboard-insights__filterbar-btn dashboard-insights__filterbar-btn--neutral ${activeInsightsTab === 'validation' && insightImpactFilter === 'neutral' ? 'dashboard-insights__filterbar-btn--active dashboard-insights__filterbar-btn--active-neutral' : ''}`}
+                onClick={() => { setActiveInsightsTab('validation'); setInsightImpactFilter('neutral'); }}
               >
-                Neutral <span className="dashboard-insights__filter-count">({countByImpact.neutral})</span>
+                <span className="dashboard-insights__filterbar-dot dashboard-insights__filterbar-dot--neutral" />
+                Neutral
+                <span className="dashboard-insights__filterbar-count">{countByImpact.neutral}</span>
               </button>
             )}
             {countByImpact.negative > 0 && (
               <button
                 type="button"
-                className={`dashboard-insights__filter dashboard-insights__filter--negative ${insightImpactFilter === 'negative' ? 'dashboard-insights__filter--active' : ''}`}
-                onClick={() => setInsightImpactFilter('negative')}
+                role="tab"
+                aria-selected={activeInsightsTab === 'validation' && insightImpactFilter === 'negative'}
+                className={`dashboard-insights__filterbar-btn dashboard-insights__filterbar-btn--negative ${activeInsightsTab === 'validation' && insightImpactFilter === 'negative' ? 'dashboard-insights__filterbar-btn--active dashboard-insights__filterbar-btn--active-negative' : ''}`}
+                onClick={() => { setActiveInsightsTab('validation'); setInsightImpactFilter('negative'); }}
               >
-                Negative <span className="dashboard-insights__filter-count">({countByImpact.negative})</span>
+                <span className="dashboard-insights__filterbar-dot dashboard-insights__filterbar-dot--negative" />
+                Negative
+                <span className="dashboard-insights__filterbar-count">{countByImpact.negative}</span>
+              </button>
+            )}
+            {/* Custom Cards tab — only appears once user has created at least one */}
+            {hasCustomCards && (
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeInsightsTab === 'customCard'}
+                className={`dashboard-insights__filterbar-btn dashboard-insights__filterbar-btn--custom ${activeInsightsTab === 'customCard' ? 'dashboard-insights__filterbar-btn--active dashboard-insights__filterbar-btn--active-custom' : ''}`}
+                onClick={() => setActiveInsightsTab('customCard')}
+              >
+                <HiOutlineSparkles size={13} />
+                Custom Cards
+                <span className="dashboard-insights__filterbar-count">{customCards.length}</span>
               </button>
             )}
           </div>
+
           <div className="dashboard-insights-grid">
-            {displayCards.map((card, i) => (
-              <InsightCardTile key={`${card.title}-${i}`} card={card} onViewEvidence={setEvidenceCard} />
-            ))}
+            {activeInsightsTab === 'validation' &&
+              displayCards.map((card, i) => (
+                <InsightCardTile
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`${card.title}-${i}`}
+                  card={card}
+                  onViewEvidence={setEvidenceCard}
+                  onEdit={() => {
+                    const idx = cards.findIndex((c) => c === card);
+                    if (idx >= 0) {
+                      setEditingCard(card);
+                      setEditingSource('validation');
+                      setEditingIndex(idx);
+                      setEditingPrompt('');
+                      setEditingError(null);
+                      setEditModalOpen(true);
+                    }
+                  }}
+                />
+              ))}
+            {activeInsightsTab === 'customCard' &&
+              customCards.map((card, i) => (
+                <InsightCardTile
+                  // eslint-disable-next-line react/no-array-index-key
+                  key={`customCard-${card.title}-${i}`}
+                  card={card}
+                  isNew={newCustomCardIndices.has(i)}
+                  onViewEvidence={setEvidenceCard}
+                  onEdit={() => {
+                    const idx = customCards.findIndex((c) => c === card);
+                    if (idx >= 0) {
+                      setEditingCard(card);
+                      setEditingSource('custom');
+                      setEditingIndex(idx);
+                      setEditingPrompt('');
+                      setEditingError(null);
+                      setEditModalOpen(true);
+                    }
+                  }}
+                />
+              ))}
           </div>
-          {hasMore && (
+          {activeInsightsTab === 'validation' && hasMore && (
             <div className="dashboard-insights__toggle-wrap">
               <button
                 type="button"
@@ -945,6 +1216,11 @@ export default function Dashboard() {
       {saveToastVisible && (
         <div className="dashboard-toast" role="status" aria-live="polite">
           Changes have been saved.
+        </div>
+      )}
+      {toastMessage && (
+        <div className="dashboard-toast" role="status" aria-live="polite">
+          {toastMessage}
         </div>
       )}
 
@@ -1038,6 +1314,582 @@ export default function Dashboard() {
           </form>
         </aside>
       </div>
+      {customCardModalOpen && (
+        <div className="dashboard-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="custom-card-title">
+          <div
+            className={"dashboard-settings-modal dashboard-custom-card-modal" + (customCardSubmitting ? " dashboard-custom-card-modal--streaming" : "")}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button — hidden while streaming */}
+            {!customCardSubmitting && (
+              <button
+                type="button"
+                className="dashboard-modal__close"
+                onClick={() => {
+                  setCustomCardModalOpen(false);
+                  setSidebarSteps([]);
+                  setSidebarDisplayedCount(0);
+                  setSidebarExitingSteps([]);
+                  setCustomCardStreamDone(false);
+                  setCustomCardError(null);
+                }}
+                aria-label="Close"
+              >
+                <HiOutlineXMark size={22} />
+              </button>
+            )}
+
+            {/* LEFT: prompt form — hidden while streaming */}
+            {!customCardSubmitting && !customCardStreamDone && (
+              <div className="dashboard-custom-card-modal__left">
+                <h2 id="custom-card-title" className="dashboard-settings-modal__title">
+                  Create custom insight card
+                </h2>
+                <p className="dashboard-settings-modal__label">
+                  Describe the metric, scenario, or question you want a new card for. The agent will create a card with
+                  the same layout as your validation insights.
+                </p>
+                <form
+                  className="dashboard-custom-card-modal__form"
+                  onSubmit={async (e) => {
+                    e.preventDefault();
+                    setCustomCardError(null);
+                    const trimmed = (customCardPrompt || "").trim();
+                    if (!trimmed) {
+                      setCustomCardError("Please enter a short description for the custom card.");
+                      return;
+                    }
+                    if (!sessionId) {
+                      showDashboardToast("Run an analysis first to create custom cards.");
+                      return;
+                    }
+                    setCustomCardSubmitting(true);
+                    setSidebarSteps([]);
+                    setSidebarDisplayedCount(0);
+                    setSidebarExitingSteps([]);
+                    setCustomCardStreamDone(false);
+                    const addSidebarStep = (variant, message) => {
+                      setSidebarSteps((prev) => [...prev, { id: Date.now() + Math.random(), variant, message }]);
+                    };
+                    try {
+                      const res = await fetch(`${API_BASE}/api/custom-cards/stream`, {
+                        method: "POST",
+                        credentials: "include",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ session_id: sessionId, prompt: trimmed }),
+                      });
+                      if (!res.ok) {
+                        const data = await res.json().catch(() => ({}));
+                        setCustomCardError(data.detail || res.statusText || "Failed to create custom card.");
+                        setCustomCardSubmitting(false);
+                        return;
+                      }
+                      const reader = res.body.getReader();
+                      const decoder = new TextDecoder();
+                      let buffer = "";
+                      while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        buffer += decoder.decode(value, { stream: true });
+                        const chunks = buffer.split("\n");
+                        buffer = chunks.pop();
+                        for (const chunk of chunks) {
+                          if (!chunk.trim()) continue;
+                          try {
+                            const evt = JSON.parse(chunk);
+                            if (evt.type === "progress") {
+                              addSidebarStep("info", evt.message);
+                            } else if (evt.type === "done" && evt.card) {
+                              addSidebarStep("success", "Card created successfully!");
+                              setCustomCardStreamDone(true);
+                              setCustomCards((prev) => {
+                                const newIdx = prev.length;
+                                setNewCustomCardIndices((s) => new Set([...s, newIdx]));
+                                return [...prev, evt.card];
+                              });
+                              setActiveInsightsTab("customCard");
+                              // Refresh credits after creating custom card
+                              refreshCredits();
+                              setTimeout(() => {
+                                setCustomCardModalOpen(false);
+                                setCustomCardPrompt("");
+                                setSidebarSteps([]);
+                                setSidebarDisplayedCount(0);
+                                setSidebarExitingSteps([]);
+                                setCustomCardStreamDone(false);
+                              }, 1800);
+                            } else if (evt.type === "error") {
+                              addSidebarStep("error", evt.message || "Failed to create custom card.");
+                              setCustomCardError(evt.message || "Failed to create custom card.");
+                            }
+                          } catch (_) {
+                            // skip malformed line
+                          }
+                        }
+                      }
+                    } catch (err) {
+                      setCustomCardError(err.message || "Failed to reach the server.");
+                    } finally {
+                      setCustomCardSubmitting(false);
+                    }
+                  }}
+                >
+                  <textarea
+                    className="dashboard-custom-card-modal__textarea"
+                    rows={5}
+                    value={customCardPrompt}
+                    onChange={(e) => setCustomCardPrompt(e.target.value)}
+                    placeholder="Example: Compare this property’s rent to recent leases for similar anchors in this mall and highlight any leverage for a 3-year term."
+                  />
+                  {customCardError && (
+                    <p className="dashboard-custom-card-modal__error" role="alert">
+                      {customCardError}
+                    </p>
+                  )}
+                  <div className="dashboard-custom-card-modal__actions">
+                    <button
+                      type="button"
+                      className="dashboard-settings-modal__btn dashboard-settings-modal__btn--secondary"
+                      onClick={() => {
+                        setCustomCardModalOpen(false);
+                        setCustomCardError(null);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                    <button type="submit" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary">
+                      Generate card
+                    </button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            {/* RIGHT: AnalysisScreen-style log sidebar — shown while streaming */}
+            {customCardSubmitting && (
+              <div className="dashboard-custom-card-modal__sidebar">
+                <div className="dashboard-custom-card-modal__sidebar-head">
+                  <span className="dashboard-custom-card-modal__sidebar-orb" />
+                  <div>
+                    <p className="dashboard-custom-card-modal__sidebar-title">Research in progress</p>
+                    <p className="dashboard-custom-card-modal__sidebar-sub">Agent is analysing your property data...</p>
+                  </div>
+                </div>
+
+                <div className="analysis-stream-steps">
+                  {/* Skeleton placeholders before first real step */}
+                  {sidebarDisplayedCount === 0 && (
+                    <>
+                      <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" /></div>
+                      <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" style={{ maxWidth: "140px" }} /></div>
+                      <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" style={{ maxWidth: "160px" }} /></div>
+                    </>
+                  )}
+
+                  {/* Exiting steps */}
+                  {sidebarExitingSteps.map((step) => (
+                    <div key={step.exitId} className={"analysis-step analysis-step--" + step.variant + " analysis-step--exiting"}>
+                      <svg className="analysis-step__icon" stroke="currentColor" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="analysis-step__text analysis-step--completed">{step.message}</p>
+                    </div>
+                  ))}
+
+                  {/* Visible steps */}
+                  {sidebarSteps.slice(
+                    Math.max(0, sidebarDisplayedCount - SIDEBAR_MAX_VISIBLE),
+                    sidebarDisplayedCount
+                  ).map((step, i, arr) => {
+                    const isLast = i === arr.length - 1;
+                    const stepDone = !isLast || customCardStreamDone;
+                    const iconPath = step.variant === "success"
+                      ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      : step.variant === "error"
+                      ? "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                      : "M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z";
+                    return (
+                      <div
+                        key={step.id}
+                        className={"analysis-step analysis-step--" + step.variant + " analysis-step--enter" + (stepDone ? " analysis-step--completed" : "")}
+                      >
+                        <svg className="analysis-step__icon" stroke="currentColor" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d={iconPath} />
+                        </svg>
+                        <p className="analysis-step__text">{step.message}</p>
+                        {!stepDone && <span className="dashboard-custom-card-modal__step-pulse" />}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Animated progress bar at bottom */}
+                <div className="dashboard-custom-card-modal__progress-bar">
+                  <div className={"dashboard-custom-card-modal__progress-fill" + (customCardStreamDone ? " dashboard-custom-card-modal__progress-fill--done" : "")} />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {editModalOpen && editingCard && (() => {
+        const closeEdit = () => {
+          setEditModalOpen(false);
+          setEditingCard(null);
+          setEditingSource(null);
+          setEditingIndex(null);
+          setEditingPrompt('');
+          setEditingError(null);
+          setEditPhase('form');
+          setEditSidebarSteps([]);
+          setEditSidebarDisplayedCount(0);
+          setEditSidebarExitingSteps([]);
+          setEditStreamDone(false);
+          setEditUpdatedCard(null);
+          setEditConfirming(false);
+        };
+
+        const addEditStep = (variant, message) => {
+          setEditSidebarSteps((prev) => [...prev, { id: Date.now() + Math.random(), variant, message }]);
+        };
+
+        // ── PHASE: streaming ──────────────────────────────────────────────
+        if (editPhase === 'streaming') {
+          return (
+            <div className="dashboard-modal-overlay" role="dialog" aria-modal="true">
+              <div className="dashboard-modal dashboard-edit-card-modal dashboard-edit-card-modal--streaming" onClick={(e) => e.stopPropagation()}>
+                <div className="dashboard-edit-card-modal__sidebar">
+                  <div className="dashboard-custom-card-modal__sidebar-head">
+                    <span className="dashboard-custom-card-modal__sidebar-orb" />
+                    <div>
+                      <p className="dashboard-custom-card-modal__sidebar-title">Refining your card</p>
+                      <p className="dashboard-custom-card-modal__sidebar-sub">Agent is applying your changes...</p>
+                    </div>
+                  </div>
+                  <div className="analysis-stream-steps">
+                    {editSidebarDisplayedCount === 0 && (
+                      <>
+                        <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" /></div>
+                        <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" style={{ maxWidth: "140px" }} /></div>
+                        <div className="analysis-step--skeleton"><span className="analysis-step__skeleton-icon" /><span className="analysis-step__skeleton-text" style={{ maxWidth: "160px" }} /></div>
+                      </>
+                    )}
+                    {editSidebarExitingSteps.map((step) => (
+                      <div key={step.exitId} className={"analysis-step analysis-step--" + step.variant + " analysis-step--exiting"}>
+                        <svg className="analysis-step__icon" stroke="currentColor" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p className="analysis-step__text">{step.message}</p>
+                      </div>
+                    ))}
+                    {editSidebarSteps.slice(
+                      Math.max(0, editSidebarDisplayedCount - EDIT_MAX_VISIBLE),
+                      editSidebarDisplayedCount
+                    ).map((step, i, arr) => {
+                      const isLast = i === arr.length - 1;
+                      const stepDone = !isLast || editStreamDone;
+                      const iconPath = step.variant === "success"
+                        ? "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        : step.variant === "error"
+                        ? "M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        : "M13 16h-1v-4h1m0-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z";
+                      return (
+                        <div
+                          key={step.id}
+                          className={"analysis-step analysis-step--" + step.variant + " analysis-step--enter" + (stepDone ? " analysis-step--completed" : "")}
+                        >
+                          <svg className="analysis-step__icon" stroke="currentColor" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d={iconPath} />
+                          </svg>
+                          <p className="analysis-step__text">{step.message}</p>
+                          {!stepDone && <span className="dashboard-custom-card-modal__step-pulse" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="dashboard-custom-card-modal__progress-bar">
+                    <div className={"dashboard-custom-card-modal__progress-fill" + (editStreamDone ? " dashboard-custom-card-modal__progress-fill--done" : "")} />
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // ── PHASE: compare ────────────────────────────────────────────────
+        if (editPhase === 'compare' && editUpdatedCard) {
+          const normalizeUrl = (u) => {
+            const s = (u || '').trim();
+            if (!s) return null;
+            return s.startsWith('http://') || s.startsWith('https://') ? s : 'https://' + s;
+          };
+          const fields = [
+            { label: "TITLE", oldVal: editingCard.title || "—", newVal: editUpdatedCard.title || "—", isText: true },
+            { label: "INSIGHT", oldVal: editingCard.insight || editingCard.data_evidence || "—", newVal: editUpdatedCard.insight || editUpdatedCard.data_evidence || "—", isText: true },
+            { label: "DATA EVIDENCE", oldVal: editingCard.data_evidence || "—", newVal: editUpdatedCard.data_evidence || "—", isText: true },
+            { label: "WHY IT MATTERS", oldVal: editingCard.why_it_matters || "—", newVal: editUpdatedCard.why_it_matters || "—", isText: true },
+            { label: "SOURCE", oldVal: editingCard.source || "—", newVal: editUpdatedCard.source || "—", isText: true },
+            { label: "SOURCE LINK", oldVal: normalizeUrl(editingCard.source_url), newVal: normalizeUrl(editUpdatedCard.source_url), isUrl: true },
+            { label: "IMPACT", oldVal: editingCard.impact || "neutral", newVal: editUpdatedCard.impact || "neutral", isText: true },
+            { label: "CONFIDENCE", oldVal: (editingCard.confidence_score ?? 0) + "%", newVal: (editUpdatedCard.confidence_score ?? 0) + "%", isText: true },
+          ];
+          const changedCount = fields.filter((f) => (f.oldVal || "—") !== (f.newVal || "—")).length;
+          const renderVal = (f, side) => {
+            const val = side === "old" ? f.oldVal : f.newVal;
+            const isNew = side === "new" && (f.oldVal || "—") !== (f.newVal || "—");
+            if (f.isUrl) {
+              return val
+                ? <a href={val} target="_blank" rel="noreferrer" className={"dashboard-edit-card-modal__compare-field-val dashboard-edit-card-modal__compare-source-link" + (isNew ? " dashboard-edit-card-modal__compare-field-val--new" : "")}>{val}</a>
+                : <span className="dashboard-edit-card-modal__compare-field-val">{side === "old" ? (editingCard.source_url ? editingCard.source_url : "—") : (editUpdatedCard.source_url ? editUpdatedCard.source_url : "—")}</span>;
+            }
+            return <div className={"dashboard-edit-card-modal__compare-field-val" + (isNew ? " dashboard-edit-card-modal__compare-field-val--new" : "")}>{val || "—"}</div>;
+          };
+          return (
+            <div className="dashboard-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-compare-title">
+              <div className="dashboard-modal dashboard-edit-card-modal dashboard-edit-card-modal--compare" onClick={(e) => e.stopPropagation()}>
+                <button type="button" className="dashboard-modal__close" onClick={closeEdit} aria-label="Close">
+                  <HiOutlineXMark size={22} />
+                </button>
+                <h2 id="edit-compare-title" className="dashboard-edit-card-modal__compare-title">Review changes</h2>
+                <p className="dashboard-edit-card-modal__compare-sub">Compare the original and updated card. Confirm to save or discard to go back.</p>
+                <div className="dashboard-edit-card-modal__compare-grid">
+                  <div className="dashboard-edit-card-modal__compare-col dashboard-edit-card-modal__compare-col--old">
+                    <div className="dashboard-edit-card-modal__compare-col-head">
+                      <span className="dashboard-edit-card-modal__compare-col-label">Before</span>
+                    </div>
+                    {fields.map((f) => {
+                      const changed = (f.oldVal || "—") !== (f.newVal || "—");
+                      return (
+                        <div key={f.label} className={"dashboard-edit-card-modal__compare-field" + (changed ? " dashboard-edit-card-modal__compare-field--changed" : "")}>
+                          <div className="dashboard-edit-card-modal__compare-field-label">{f.label}</div>
+                          {renderVal(f, "old")}
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div className="dashboard-edit-card-modal__compare-col dashboard-edit-card-modal__compare-col--new">
+                    <div className="dashboard-edit-card-modal__compare-col-head">
+                      <span className="dashboard-edit-card-modal__compare-col-label">After</span>
+                      <span className="dashboard-edit-card-modal__compare-changes-badge">
+                        {changedCount} change{changedCount !== 1 ? "s" : ""}
+                      </span>
+                    </div>
+                    {fields.map((f) => {
+                      const changed = (f.oldVal || "—") !== (f.newVal || "—");
+                      return (
+                        <div key={f.label} className={"dashboard-edit-card-modal__compare-field" + (changed ? " dashboard-edit-card-modal__compare-field--changed" : "")}>
+                          <div className="dashboard-edit-card-modal__compare-field-label">{f.label}</div>
+                          {renderVal(f, "new")}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+                {editingError && (
+                  <p className="dashboard-edit-card-modal__error" role="alert" style={{ marginTop: "8px" }}>{editingError}</p>
+                )}
+                <div className="dashboard-edit-card-modal__compare-actions">
+                  <button
+                    type="button"
+                    className="dashboard-settings-modal__btn dashboard-settings-modal__btn--secondary"
+                    onClick={closeEdit}
+                  >
+                    Discard
+                  </button>
+                  <button
+                    type="button"
+                    className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary"
+                    disabled={editConfirming}
+                    onClick={async () => {
+                      setEditConfirming(true);
+                      setEditingError(null);
+                      try {
+                        const res = await fetch(
+                          `${API_BASE}/api/custom-cards/${editingIndex}/confirm`,
+                          {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              session_id: sessionId,
+                              source: editingSource,
+                              updated_card: editUpdatedCard,
+                            }),
+                          }
+                        );
+                        if (!res.ok) {
+                          const d = await res.json().catch(() => ({}));
+                          setEditingError(d.detail || "Failed to save card.");
+                          return;
+                        }
+                        if (editingSource === "validation") {
+                          setEditedValidationCards((prev) => {
+                            const base = prev !== null ? prev : [...baseCards];
+                            const next = [...base];
+                            if (editingIndex >= 0 && editingIndex < next.length) next[editingIndex] = editUpdatedCard;
+                            return next;
+                          });
+                        } else {
+                          setCustomCards((prev) => {
+                            const next = [...prev];
+                            if (editingIndex >= 0 && editingIndex < next.length) next[editingIndex] = editUpdatedCard;
+                            return next;
+                          });
+                        }
+                        showDashboardToast("Card updated successfully.");
+                        // Refresh credits after editing card
+                        refreshCredits();
+                        closeEdit();
+                      } catch (err) {
+                        setEditingError(err.message || "Failed to reach the server.");
+                      } finally {
+                        setEditConfirming(false);
+                      }
+                    }}
+                  >
+                    {editConfirming ? "Saving..." : "Confirm & Save"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        }
+
+        // ── PHASE: form (default) ─────────────────────────────────────────
+        return (
+          <div className="dashboard-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="edit-card-title">
+            <div className="dashboard-modal dashboard-edit-card-modal" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="dashboard-modal__close" onClick={closeEdit} aria-label="Close">
+                <HiOutlineXMark size={22} />
+              </button>
+              <div className="dashboard-edit-card-modal__body">
+                <div className="dashboard-edit-card-modal__col dashboard-edit-card-modal__col--left">
+                  <h2 id="edit-card-title" className="dashboard-modal__title">{editingCard.title}</h2>
+                  <div className={"dashboard-modal__impact dashboard-modal__impact--" + (editingCard.impact || "neutral")}>
+                    {(editingCard.impact || "neutral").toUpperCase()} IMPACT
+                  </div>
+                  <div className="dashboard-modal__section">
+                    <div className="dashboard-modal__section-label">WHAT&apos;S THE INSIGHT</div>
+                    <div className="dashboard-modal__section-content">
+                      <p className="dashboard-modal__evidence-text">{editingCard.insight || editingCard.data_evidence || "—"}</p>
+                    </div>
+                  </div>
+                  <div className="dashboard-modal__section">
+                    <div className="dashboard-modal__section-label">DATA EVIDENCE (FROM WHERE)</div>
+                    <div className="dashboard-modal__section-content">
+                      <p className="dashboard-modal__evidence-text">{editingCard.data_evidence || "No data"}</p>
+                    </div>
+                  </div>
+                  <div className="dashboard-modal__section">
+                    <div className="dashboard-modal__section-label dashboard-modal__section-label--blue">WHY IT MATTERS</div>
+                    <div className="dashboard-modal__section-content">
+                      <p className="dashboard-modal__evidence-text">{editingCard.why_it_matters || "—"}</p>
+                    </div>
+                  </div>
+                  <div className="dashboard-edit-card-modal__meta">
+                    <span className="dashboard-modal__source">Source: {editingCard.source || "Not available"}</span>
+                    <span className="dashboard-modal__confidence">Confidence: <strong>{editingCard.confidence_score ?? 0}%</strong></span>
+                  </div>
+                </div>
+                <div className="dashboard-edit-card-modal__col dashboard-edit-card-modal__col--right">
+                  <h3 className="dashboard-edit-card-modal__title">Refine this card</h3>
+                  <p className="dashboard-edit-card-modal__subtitle">
+                    Describe what you want to change or emphasize. The agent will update the card while keeping the same structure and fields.
+                  </p>
+                  <form
+                    className="dashboard-edit-card-modal__form"
+                    onSubmit={async (e) => {
+                      e.preventDefault();
+                      setEditingError(null);
+                      const trimmed = (editingPrompt || "").trim();
+                      if (!trimmed) { setEditingError("Please describe how you want to refine this card."); return; }
+                      if (!sessionId || editingIndex == null || !editingSource) {
+                        showDashboardToast("Session not available. Run an analysis again and reopen the card.");
+                        return;
+                      }
+                      setEditingSubmitting(true);
+                      setEditPhase("streaming");
+                      setEditSidebarSteps([]);
+                      setEditSidebarDisplayedCount(0);
+                      setEditSidebarExitingSteps([]);
+                      setEditStreamDone(false);
+                      setEditUpdatedCard(null);
+                      try {
+                        const res = await fetch(
+                          `${API_BASE}/api/custom-cards/${editingIndex}/edit/stream`,
+                          {
+                            method: "POST",
+                            credentials: "include",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({ session_id: sessionId, prompt: trimmed, source: editingSource }),
+                          }
+                        );
+                        if (!res.ok) {
+                          const d = await res.json().catch(() => ({}));
+                          setEditingError(d.detail || res.statusText || "Failed to update card.");
+                          setEditPhase("form");
+                          return;
+                        }
+                        const reader = res.body.getReader();
+                        const decoder = new TextDecoder();
+                        let buf = "";
+                        while (true) {
+                          const { done, value } = await reader.read();
+                          if (done) break;
+                          buf += decoder.decode(value, { stream: true });
+                          const chunks = buf.split("\n");
+                          buf = chunks.pop();
+                          for (const chunk of chunks) {
+                            if (!chunk.trim()) continue;
+                            try {
+                              const evt = JSON.parse(chunk);
+                              if (evt.type === "progress") {
+                                addEditStep("info", evt.message);
+                              } else if (evt.type === "done") {
+                                addEditStep("success", "Changes ready — review below.");
+                                setEditStreamDone(true);
+                                setEditUpdatedCard(evt.updated);
+                                setTimeout(() => { setEditPhase("compare"); }, 900);
+                              } else if (evt.type === "error") {
+                                addEditStep("error", evt.message || "Failed to update card.");
+                                setEditingError(evt.message || "Failed to update card.");
+                                setEditPhase("form");
+                              }
+                            } catch (_) {}
+                          }
+                        }
+                      } catch (err) {
+                        setEditingError(err.message || "Failed to reach the server.");
+                        setEditPhase("form");
+                      } finally {
+                        setEditingSubmitting(false);
+                      }
+                    }}
+                  >
+                    <textarea
+                      className="dashboard-edit-card-modal__textarea"
+                      rows={6}
+                      value={editingPrompt}
+                      onChange={(e) => setEditingPrompt(e.target.value)}
+                      placeholder="Example: Emphasize how this gives the tenant leverage on rent, and add clearer numbers for current vs baseline trend."
+                    />
+                    {editingError && <p className="dashboard-edit-card-modal__error" role="alert">{editingError}</p>}
+                    <div className="dashboard-edit-card-modal__actions">
+                      <button type="button" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--secondary" onClick={closeEdit}>
+                        Cancel
+                      </button>
+                      <button type="submit" className="dashboard-settings-modal__btn dashboard-settings-modal__btn--primary" disabled={editingSubmitting}>
+                        {editingSubmitting ? "Updating..." : "Update card"}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }

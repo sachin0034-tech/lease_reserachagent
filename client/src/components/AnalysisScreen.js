@@ -205,7 +205,7 @@ export default function AnalysisScreen() {
           </h1>
           {status !== 'done' && status !== 'error' && (
             <p className="analysis-header__subtitle">
-              Your research agent is gathering market data and validating rent factors. This usually takes a minute.
+              
             </p>
           )}
         </div>

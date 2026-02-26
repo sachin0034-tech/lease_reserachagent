@@ -36,6 +36,47 @@
   gap: 20px;
 }
 
+.credits-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: #f5f3ff;
+  border: 1px solid #ddd6fe;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.credits-pill__label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #4c1d95;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.credits-pill__bar {
+  position: relative;
+  width: 88px;
+  height: 6px;
+  border-radius: 999px;
+  background: #e5e7eb;
+  overflow: hidden;
+}
+
+.credits-pill__fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #4f46e5 0%, #6366f1 40%, #a855f7 80%);
+}
+
+.credits-pill__value {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #111827;
+}
+
 .header-btn {
   display: inline-flex;
   align-items: center;
