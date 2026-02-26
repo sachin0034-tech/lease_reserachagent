@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HiArrowRightOnRectangle } from 'react-icons/hi2';
 import { SettingsModal } from './Dashboard';
 import './LeaseForecasterForm.css';
 import './Dashboard.css';
@@ -67,6 +68,9 @@ export default function LeaseForecasterForm() {
   const [summaryContext, setSummaryContext] = useState(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [credits, setCredits] = useState(null);
+  const [navUsername] = useState(() => {
+    try { return (typeof window !== 'undefined' && window.localStorage.getItem('lg_username')) || ''; } catch { return ''; }
+  });
 
   const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:8000';
 
@@ -230,10 +234,26 @@ export default function LeaseForecasterForm() {
           </button>
           <div className="user-info">
             <div className="user-text">
-              <span className="user-name">LegalGraph User</span>
+              <span className="user-name">{navUsername || 'LegalGraph User'}</span>
               <span className="user-role">Admin</span>
             </div>
-            <div className="user-avatar" aria-hidden>LG</div>
+            <div className="user-avatar" aria-hidden>
+              {navUsername ? navUsername.slice(0, 2).toUpperCase() : 'LG'}
+            </div>
+            <button
+              type="button"
+              className="dashboard-navbar__logout-btn"
+              onClick={() => {
+                try { if (typeof window !== 'undefined') { window.localStorage.removeItem('lg_username'); window.localStorage.removeItem('lg_analysis_session_id'); } } catch (_) {}
+                navigate('/');
+              }}
+              aria-label={"Logout " + (navUsername || "user")}
+            >
+              <span className="dashboard-navbar__logout-btn-icon">
+                <HiArrowRightOnRectangle size={20} />
+              </span>
+              <span className="dashboard-navbar__logout-btn-text">Logout</span>
+            </button>
           </div>
         </div>
       </header>
