@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Link, useLocation, useNavigate, Navigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import {
   HiOutlineBanknotes,
   HiOutlineChartBar,
